@@ -4,7 +4,8 @@ module com.progiii.mailclientserver {
 
     requires javafx.graphics;
 
-    opens com.progiii.mailclientserver to javafx.fxml;
     exports com.progiii.mailclientserver.client.view;
     opens com.progiii.mailclientserver.client.view to javafx.fxml;
+    exports com.progiii.mailclientserver.client.controller;
+    opens com.progiii.mailclientserver.client.controller to javafx.fxml;
 }

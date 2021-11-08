@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="MailClientServer" target="17" />
+      <module name="MailClientServer" target="16" />
     </bytecodeTargetLevel>
   </component>
 </project>
