@@ -1,4 +1,4 @@
-package com.progiii.mailclientserver.server.view;
+package com.progiii.mailclientserver.server.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
