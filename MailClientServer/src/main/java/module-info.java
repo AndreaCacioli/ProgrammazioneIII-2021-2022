@@ -2,7 +2,7 @@ module com.progiii.mailclientserver {
     requires javafx.controls;
     requires javafx.fxml;
 
-    requires org.kordamp.bootstrapfx.core;
+    requires javafx.graphics;
 
     opens com.progiii.mailclientserver to javafx.fxml;
     exports com.progiii.mailclientserver.client.view;
