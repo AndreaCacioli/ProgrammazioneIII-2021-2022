@@ -64,7 +64,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.progiii.mailclientserver/com.progiii.mailclientserver.client.view.HelloApplication
+                            <mainClass>com.progiii.mailclientserver/com.progiii.mailclientserver.client.view.ClientView
                             </mainClass>
                         </configuration>
                     </execution>

@@ -1,9 +1,9 @@
-package com.progiii.mailclientserver.server.view;
+package com.progiii.mailclientserver.client.view;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
-public class HelloController {
+public class ClientController {
     @FXML
     private Label welcomeText;
 
