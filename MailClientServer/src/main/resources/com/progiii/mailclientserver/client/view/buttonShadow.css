@@ -1,0 +1,45 @@
+#inboxButtonId{
+    -fx-background-color:  transparent;
+}
+#sentButtonId{
+    -fx-background-color:  transparent;
+}
+#draftsButtonId{
+    -fx-background-color:  transparent;
+}
+#inboxButtonId:focused{
+    -fx-background-color: rgba(189, 195, 199, 0.3);
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+    -fx-text-fill: black;
+}
+#sentButtonId:focused{
+    -fx-background-color: rgba(189, 195, 199, 0.3);
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+    -fx-text-fill: black;
+}
+#draftsButtonId:focused{
+    -fx-background-color: rgba(189, 195, 199, 0.3);
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+    -fx-text-fill: black;
+}
+
+#forwardButtoinId{
+    -fx-background-color:  transparent;
+}
+#forwardButtoinId:pressed{
+    -fx-background-color: rgba(189, 195, 199, 0.3);
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+}
+#deleteButtonId{
+    -fx-background-color:  transparent;
+}
+#deleteButtonId:pressed{
+    -fx-background-color: rgba(189, 195, 199, 0.3);
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+}
+
