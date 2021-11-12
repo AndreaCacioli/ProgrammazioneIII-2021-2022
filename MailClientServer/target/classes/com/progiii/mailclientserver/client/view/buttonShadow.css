@@ -60,3 +60,15 @@
     -fx-background-radius: 5;
     -fx-background-insets: 0;
 }
+
+#textFieldA {
+    -fx-background-color: white;
+}
+
+#textFieldCc {
+    -fx-background-color: white;
+}
+
+#textFieldOggetto{
+    -fx-background-color: white;
+}
