@@ -1,61 +1,19 @@
-#inboxButtonId {
+.toolbarButton {
     -fx-background-color: transparent;
 }
 
-#sentButtonId {
+.sectionButton {
     -fx-background-color: transparent;
 }
 
-#draftsButtonId {
-    -fx-background-color: transparent;
-}
-
-#msgButtonId {
-    -fx-background-color: transparent;
-}
-
-#forwardButtoinId {
-    -fx-background-color: transparent;
-}
-
-#deleteButtonId {
-    -fx-background-color: transparent;
-}
-
-#inboxButtonId:focused {
+.sectionButton:focused {
     -fx-background-color: rgba(189, 195, 199, 0.3);
     -fx-background-radius: 5;
     -fx-background-insets: 0;
     -fx-text-fill: black;
 }
 
-#sentButtonId:focused {
-    -fx-background-color: rgba(189, 195, 199, 0.3);
-    -fx-background-radius: 5;
-    -fx-background-insets: 0;
-    -fx-text-fill: black;
-}
-
-#draftsButtonId:focused {
-    -fx-background-color: rgba(189, 195, 199, 0.3);
-    -fx-background-radius: 5;
-    -fx-background-insets: 0;
-    -fx-text-fill: black;
-}
-
-#msgButtonId:pressed {
-    -fx-background-color: rgba(189, 195, 199, 0.3);
-    -fx-background-radius: 5;
-    -fx-background-insets: 0;
-}
-
-#forwardButtoinId:pressed {
-    -fx-background-color: rgba(189, 195, 199, 0.3);
-    -fx-background-radius: 5;
-    -fx-background-insets: 0;
-}
-
-#deleteButtonId:pressed {
+.toolbarButton:pressed {
     -fx-background-color: rgba(189, 195, 199, 0.3);
     -fx-background-radius: 5;
     -fx-background-insets: 0;
@@ -69,6 +27,7 @@
     -fx-background-color: white;
 }
 
-#textFieldOggetto{
+#textFieldOggetto {
     -fx-background-color: white;
 }
+
