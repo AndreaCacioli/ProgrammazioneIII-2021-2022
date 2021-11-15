@@ -48,7 +48,7 @@
 
 <!--suppress ALL -->
 
-<VBox minHeight="600.0" minWidth="900.0" opacity="0.75" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.progiii.mailclientserver.client.controller.ClientController">
+<VBox opacity="0.75" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.progiii.mailclientserver.client.controller.ClientController">
   <children>
     <SplitPane dividerPositions="0.18429844097995546, 0.5" focusTraversable="true" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
       <items>

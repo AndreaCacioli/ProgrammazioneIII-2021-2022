@@ -1,14 +1,15 @@
 package com.progiii.mailclientserver.client.controller;
 
-import javafx.collections.ObservableArray;
-import javafx.collections.ObservableList;
+import com.progiii.mailclientserver.client.model.Client;
+import com.progiii.mailclientserver.client.model.Email;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 
 
-public class ClientController {
+public class ClientController
+{
     @FXML
     private Button inboxButtonId;
     @FXML
@@ -21,23 +22,32 @@ public class ClientController {
     private Button deleteButtonId;
 
     @FXML
-    private ListView<String> emailListView;
+    private ListView<Email> emailListView;
+
+    Client client;
+
+    @FXML
+    public void initialize()
+    {
+        client = new Client();
+    }
+
 
     @FXML
     private void showInbox() {
         //TODO: fetch all mails and show them in the listView
-        emailListView.getItems().add("inbox");
+        Bindings.bindContent(emailListView.getItems(), client.inbox);
     }
 
     @FXML
     private void showSent() {
         //TODO: fetch all sent emails and show them in the listView
-        emailListView.getItems().add("sent");
+        Bindings.bindContent(emailListView.getItems(), client.sent);
     }
 
     @FXML
     private void showDrafts() {
         //TODO: fetch all drafts mails and show them in the listView
-        emailListView.getItems().add("drafts");
+        Bindings.bindContent(emailListView.getItems(), client.drafts);
     }
 }
