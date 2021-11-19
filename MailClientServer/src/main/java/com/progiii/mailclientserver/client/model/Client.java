@@ -9,19 +9,23 @@ public class Client
     public ObservableList<Email> inbox;
     public ObservableList<Email> drafts;
     public ObservableList<Email> sent;
-    //TODO maybe add trash
+    public ObservableList<Email> trash;
+
+    public Email selectedEmail;
 
     public Client()
     {
         inbox = FXCollections.observableArrayList();
         drafts = FXCollections.observableArrayList();
         sent = FXCollections.observableArrayList();
+        trash = FXCollections.observableArrayList();
 
         for (int i = 0; i < 10; i++)
         {
-            inbox.add(Email.getRandomEmail());
-            drafts.add(Email.getRandomEmail());
-            sent.add(Email.getRandomEmail());
+            inbox.add(Email.getRandomEmail(EmailState.RECEIVED));
+            drafts.add(Email.getRandomEmail(EmailState.DRAFTED));
+            sent.add(Email.getRandomEmail(EmailState.SENT));
+            trash.add(Email.getRandomEmail(EmailState.TRASHED));
         }
 
 
