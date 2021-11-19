@@ -3,8 +3,7 @@ package com.progiii.mailclientserver.client.model;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public class Client
-{
+public class Client {
     public final String id = "GruppoProgIII@javafxslays.it";
     public ObservableList<Email> inbox;
     public ObservableList<Email> drafts;
@@ -13,23 +12,17 @@ public class Client
 
     public Email selectedEmail;
 
-    public Client()
-    {
+    public Client() {
         inbox = FXCollections.observableArrayList();
         drafts = FXCollections.observableArrayList();
         sent = FXCollections.observableArrayList();
         trash = FXCollections.observableArrayList();
 
-        for (int i = 0; i < 10; i++)
-        {
+        for (int i = 0; i < 10; i++) {
             inbox.add(Email.getRandomEmail(EmailState.RECEIVED));
             drafts.add(Email.getRandomEmail(EmailState.DRAFTED));
             sent.add(Email.getRandomEmail(EmailState.SENT));
             trash.add(Email.getRandomEmail(EmailState.TRASHED));
         }
-
-
-
     }
-
 }

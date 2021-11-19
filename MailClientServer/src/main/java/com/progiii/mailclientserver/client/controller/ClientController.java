@@ -3,15 +3,14 @@ package com.progiii.mailclientserver.client.controller;
 import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
 import javafx.beans.binding.Bindings;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 
 
-public class ClientController
-{
+public class ClientController {
     @FXML
     private Button inboxButtonId;
     @FXML
@@ -22,22 +21,25 @@ public class ClientController
     private Button forwardButtonId;
     @FXML
     private Button deleteButtonId;
-
     @FXML
     private ListView<Email> emailListView;
     @FXML
     private TextArea selectedEmailView;
+    @FXML
+    private TextField fromTextField;
+    @FXML
+    private TextField toTextField;
+    @FXML
+    private TextField subjectTextField;
 
     Client client;
 
-
-
     @FXML
-    public void initialize()
-    {
+    public void initialize() {
+        if (this.client != null)
+            throw new IllegalStateException("Model can only be initialized once");
         client = new Client();
     }
-
 
     @FXML
     private void showInbox() {
@@ -65,47 +67,54 @@ public class ClientController
     }
 
     @FXML
-    private void showSelectedEmail()
-    {
+    private void showSelectedEmail() {
         Email email = emailListView.getSelectionModel().getSelectedItems().get(0);
         client.selectedEmail = email;
-        System.out.println("showing new email! " + client.selectedEmail);
+        fromTextField.textProperty().bind(email.senderProperty());
+        toTextField.textProperty().bind(email.receiverProperty());
+        subjectTextField.textProperty().bind(email.subjectProperty());
         selectedEmailView.textProperty().bind(email.bodyProperty());
     }
 
+
     @FXML
-    private void deleteSelectedEmail()
-    {
-        if(client.selectedEmail != null)
-        {
-            switch (client.selectedEmail.state)
-            {
+    private void deleteSelectedEmail() {
+        if (client.selectedEmail != null) {
+            switch (client.selectedEmail.state) {
                 case DRAFTED -> {
                     client.drafts.remove(client.selectedEmail);
                     client.trash.add(client.selectedEmail);
-                    selectedEmailView.textProperty().unbind();
-                    selectedEmailView.setText("");
+                    resetSelectedEmail();
                     client.selectedEmail = null;
                 }
 
                 case SENT -> {
                     client.sent.remove(client.selectedEmail);
                     client.trash.add(client.selectedEmail);
-                    selectedEmailView.textProperty().unbind();
-                    selectedEmailView.setText("");
+                    resetSelectedEmail();
                     client.selectedEmail = null;
                 }
                 case RECEIVED -> {
                     client.inbox.remove(client.selectedEmail);
                     client.trash.add(client.selectedEmail);
-                    selectedEmailView.textProperty().unbind();
-                    selectedEmailView.setText("");
+                    resetSelectedEmail();
                     client.selectedEmail = null;
                 }
                 //TODO add trashed section
             }
 
         }
+    }
+
+    private void resetSelectedEmail() {
+        fromTextField.textProperty().unbind();
+        fromTextField.setText("");
+        toTextField.textProperty().unbind();
+        toTextField.setText("");
+        subjectTextField.textProperty().unbind();
+        subjectTextField.setText("");
+        selectedEmailView.textProperty().unbind();
+        selectedEmailView.setText("");
     }
 
 }

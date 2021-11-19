@@ -39,6 +39,8 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
@@ -53,31 +55,41 @@
   <children>
     <SplitPane dividerPositions="0.18429844097995546, 0.5" focusTraversable="true" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
       <items>
-            <AnchorPane maxWidth="200.0" prefHeight="200.0" prefWidth="200.0">
+            <VBox maxWidth="200.0" minWidth="100.0" prefHeight="200.0" prefWidth="100.0">
                <children>
-                  <Button fx:id="inboxButtonId" alignment="BOTTOM_LEFT" mnemonicParsing="false" onAction="#showInbox" prefHeight="26.0" prefWidth="232.0" styleClass="sectionButton" text="Inbox" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <HBox maxHeight="100.0" minHeight="80.0" VBox.vgrow="ALWAYS">
+                     <children>
+                        <ImageView fitHeight="100.0" fitWidth="91.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="ALWAYS">
+                           <image>
+                              <Image url="@IMG_0245.JPG" />
+                           </image>
+                        </ImageView>
+                        <Label text="ACCOUNT" HBox.hgrow="ALWAYS" />
+                     </children>
+                  </HBox>
+                  <Button fx:id="inboxButtonId" alignment="BOTTOM_LEFT" mnemonicParsing="false" onAction="#showInbox" prefHeight="26.0" prefWidth="232.0" styleClass="sectionButton" text="Inbox" VBox.vgrow="ALWAYS">
                    <graphic>
                        <SVGPath content="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm9.954 5H10.45a2.5 2.5 0 0 1-4.9 0H1.066l.32 2.562a.5.5 0 0 0 .497.438h12.234a.5.5 0 0 0 .496-.438L14.933 9zM3.809 3.563A1.5 1.5 0 0 1 4.981 3h6.038a1.5 1.5 0 0 1 1.172.563l3.7 4.625a.5.5 0 0 1 .105.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625zM4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm9.954 5H10.45a2.5 2.5 0 0 1-4.9 0H1.066l.32 2.562a.5.5 0 0 0 .497.438h12.234a.5.5 0 0 0 .496-.438L14.933 9zM3.809 3.563A1.5 1.5 0 0 1 4.981 3h6.038a1.5 1.5 0 0 1 1.172.563l3.7 4.625a.5.5 0 0 1 .105.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625zM4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm9.954 5H10.45a2.5 2.5 0 0 1-4.9 0H1.066l.32 2.562a.5.5 0 0 0 .497.438h12.234a.5.5 0 0 0 .496-.438L14.933 9zM3.809 3.563A1.5 1.5 0 0 1 4.981 3h6.038a1.5 1.5 0 0 1 1.172.563l3.7 4.625a.5.5 0 0 1 .105.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625zM4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm9.954 5H10.45a2.5 2.5 0 0 1-4.9 0H1.066l.32 2.562a.5.5 0 0 0 .497.438h12.234a.5.5 0 0 0 .496-.438L14.933 9zM3.809 3.563A1.5 1.5 0 0 1 4.981 3h6.038a1.5 1.5 0 0 1 1.172.563l3.7 4.625a.5.5 0 0 1 .105.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625z" />
                    </graphic>
                    </Button>
-                  <Button fx:id="sentButtonId" alignment="BOTTOM_LEFT" layoutY="26.0" mnemonicParsing="false" onAction="#showSent" prefHeight="26.0" prefWidth="232.0" styleClass="sectionButton" text="Sent" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                  <Button fx:id="sentButtonId" alignment="BOTTOM_LEFT" mnemonicParsing="false" onAction="#showSent" prefHeight="26.0" prefWidth="232.0" styleClass="sectionButton" text="Sent" VBox.vgrow="ALWAYS">
                      <graphic>
                         <SVGPath content="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493ZM15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493ZM15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493ZM15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z" />
                      </graphic>
                   </Button>
-                  <Button fx:id="draftsButtonId" alignment="BOTTOM_LEFT" layoutY="52.0" mnemonicParsing="false" onAction="#showDrafts" prefHeight="26.0" prefWidth="232.0" styleClass="sectionButton" text="Drafts" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                  <Button fx:id="draftsButtonId" alignment="BOTTOM_LEFT" mnemonicParsing="false" onAction="#showDrafts" prefHeight="26.0" prefWidth="232.0" styleClass="sectionButton" text="Drafts" VBox.vgrow="ALWAYS">
                      <graphic>
                         <SVGPath content="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
                      </graphic>
                   </Button>
-                  <Button fx:id="trashButtonId" alignment="BOTTOM_LEFT" layoutX="5.0" layoutY="78.0" mnemonicParsing="false" onAction="#showTrash" prefHeight="26.0" prefWidth="232.0" styleClass="sectionButton" text="Trash" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                  <Button fx:id="trashButtonId" alignment="BOTTOM_LEFT" mnemonicParsing="false" onAction="#showTrash" prefHeight="26.0" prefWidth="232.0" styleClass="sectionButton" text="Trash" VBox.vgrow="ALWAYS">
                      <graphic>
                         <SVGPath content="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
                      </graphic>
                   </Button>
                </children>
-            </AnchorPane>
-        <AnchorPane maxWidth="270.0" prefHeight="200.0" prefWidth="200.0">
+            </VBox>
+        <AnchorPane maxWidth="270.0" minWidth="260.0" prefHeight="200.0" prefWidth="200.0">
           <children>
             <Label alignment="CENTER" layoutX="14.0" layoutY="14.0" style="&#10;" text="List of emails" textAlignment="CENTER" wrapText="false" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <font>
@@ -92,6 +104,9 @@
                   </Label>
                   <ListView fx:id="emailListView" layoutX="1.0" layoutY="37.0" onMouseClicked="#showSelectedEmail" prefHeight="519.0" prefWidth="182.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="35.0" />
           </children>
+               <padding>
+                  <Insets bottom="10.0" />
+               </padding>
         </AnchorPane>
             <VBox prefHeight="200.0" prefWidth="100.0">
                <children>
@@ -130,8 +145,11 @@
                   </HBox>
                   <HBox maxHeight="25.0" prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label text="from:" HBox.hgrow="ALWAYS" />
-                        <TextField editable="false" styleClass="invisibleTextArea" HBox.hgrow="ALWAYS" />
+                        <Label text="from:" HBox.hgrow="ALWAYS">
+                           <HBox.margin>
+                              <Insets top="5.0" />
+                           </HBox.margin></Label>
+                        <TextField fx:id="fromTextField" editable="false" styleClass="invisibleTextArea" HBox.hgrow="ALWAYS" />
                      </children>
                      <padding>
                         <Insets left="15.0" />
@@ -139,8 +157,11 @@
                   </HBox>
                   <HBox maxHeight="25.0" prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label text="to:" HBox.hgrow="ALWAYS" />
-                        <TextField editable="false" styleClass="invisibleTextArea" HBox.hgrow="ALWAYS" />
+                        <Label text="to:" HBox.hgrow="ALWAYS">
+                           <HBox.margin>
+                              <Insets top="5.0" />
+                           </HBox.margin></Label>
+                        <TextField fx:id="toTextField" editable="false" styleClass="invisibleTextArea" HBox.hgrow="ALWAYS" />
                      </children>
                      <padding>
                         <Insets left="15.0" />
@@ -148,21 +169,21 @@
                   </HBox>
                   <HBox maxHeight="25.0" prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label prefHeight="16.0" prefWidth="52.0" text="subject" HBox.hgrow="ALWAYS" />
-                        <TextField editable="false" styleClass="invisibleTextArea" HBox.hgrow="ALWAYS" />
+                        <Label text="subject:" HBox.hgrow="ALWAYS">
+                           <HBox.margin>
+                              <Insets top="5.0" />
+                           </HBox.margin></Label>
+                        <TextField fx:id="subjectTextField" editable="false" styleClass="invisibleTextArea" HBox.hgrow="ALWAYS" />
                      </children>
                      <padding>
                         <Insets left="15.0" />
                      </padding>
                   </HBox>
-            <AnchorPane id="Content" minHeight="-1.0" minWidth="-1.0" prefHeight="545.0" prefWidth="443.0">
-              <children>
-                        <TextArea fx:id="selectedEmailView" editable="false" layoutX="79.0" layoutY="43.0" prefHeight="502.0" prefWidth="535.0" styleClass="invisibleTextArea" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-              </children>
-                     <padding>
-                        <Insets top="10.0" />
-                     </padding>
-            </AnchorPane>
+                  <TextArea fx:id="selectedEmailView" editable="false" prefHeight="502.0" prefWidth="535.0" styleClass="invisibleTextArea" wrapText="true" VBox.vgrow="ALWAYS">
+                     <VBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </VBox.margin>
+                  </TextArea>
                </children>
             </VBox>
       </items>
