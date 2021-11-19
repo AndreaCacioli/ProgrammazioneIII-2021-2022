@@ -6,6 +6,10 @@
     -fx-background-color: transparent;
 }
 
+.invisibleTextArea{
+    -fx-background-color: transparent;
+}
+
 .sectionButton:focused {
     -fx-background-color: rgba(189, 195, 199, 0.3);
     -fx-background-radius: 5;

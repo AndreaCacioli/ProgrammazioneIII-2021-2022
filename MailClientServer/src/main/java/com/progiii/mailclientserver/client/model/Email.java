@@ -56,7 +56,7 @@ public class Email
     {
         DateTimeFormatter ft = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         return   "From: " + sender + ":\n" +
-                 subject + '\t' +
+                 subject + '\n' +
                 ft.format(this.dateTime);
     }
 
