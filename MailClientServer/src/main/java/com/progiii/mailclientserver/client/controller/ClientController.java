@@ -3,7 +3,6 @@ package com.progiii.mailclientserver.client.controller;
 import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
 import com.progiii.mailclientserver.client.model.EmailState;
-import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
@@ -36,33 +35,32 @@ public class ClientController {
     @FXML
     private void showInbox() {
         //TODO: fetch all mails and show them in the listView
-        if(client.inbox.size() > 0) client.selectedEmail = client.inbox.get(0);
-        emailListView.itemsProperty().bind(client.inbox);
+        if(client.inboxProperty().size() > 0) client.selectedEmail = client.inboxProperty().get(0);
+        emailListView.itemsProperty().bind(client.inboxProperty());
         bindMailToView(client.selectedEmail);
     }
 
     @FXML
     private void showSent() {
-        if(client.sent.size() > 0) client.selectedEmail = client.sent.get(0);
+        if(client.sentProperty().size() > 0) client.selectedEmail = client.sentProperty().get(0);
         //TODO: fetch all sent emails and show them in the listView
-        emailListView.itemsProperty().bind(client.sent);
+        emailListView.itemsProperty().bind(client.sentProperty());
         bindMailToView(client.selectedEmail);
     }
 
     @FXML
     private void showDrafts() {
-        if(client.drafts.size() > 0) client.selectedEmail = client.drafts.get(0);
+        if(client.draftsProperty().size() > 0) client.selectedEmail = client.draftsProperty().get(0);
         //TODO: fetch all drafts mails and show them in the listView
-        emailListView.itemsProperty().bind(client.drafts);
+        emailListView.itemsProperty().bind(client.draftsProperty());
         bindMailToView(client.selectedEmail);
     }
 
-    //TODO find out why this button causes the others to fail when deleting an email
     @FXML
     private void showTrash() {
-        if(client.trash.size() > 0) client.selectedEmail = client.trash.get(0);
+        if(client.trashProperty().size() > 0) client.selectedEmail = client.trashProperty().get(0);
         //TODO: fetch all trashed mails and show them in the listView
-        emailListView.itemsProperty().bind(client.trash);
+        emailListView.itemsProperty().bind(client.trashProperty());
         bindMailToView(client.selectedEmail);
     }
 
@@ -86,22 +84,22 @@ public class ClientController {
         if (client.selectedEmail != null) {
             switch (client.selectedEmail.state) {
                 case DRAFTED -> {
-                    int index = sendSelectedEmailToTrash(client.drafts);
+                    int index = sendSelectedEmailToTrash(client.draftsProperty());
                     showNextEmail(index);
                 }
 
                 case SENT -> {
-                    int index = sendSelectedEmailToTrash(client.sent);
+                    int index = sendSelectedEmailToTrash(client.sentProperty());
                     showNextEmail(index);
                 }
 
                 case RECEIVED -> {
-                    int index = sendSelectedEmailToTrash(client.inbox);
+                    int index = sendSelectedEmailToTrash(client.inboxProperty());
                     showNextEmail(index);
                 }
 
                 case TRASHED -> {
-                    int index = sendSelectedEmailToTrash(client.trash);
+                    int index = sendSelectedEmailToTrash(client.trashProperty());
                     showNextEmail(index);
                 }
 
@@ -112,13 +110,12 @@ public class ClientController {
 
     private int sendSelectedEmailToTrash(ObservableList<Email> list)
     {
-        //TODO solve out of bounds
         int ret = list.indexOf(client.selectedEmail);
 
         if(client.selectedEmail.state != EmailState.TRASHED)
         {
             client.selectedEmail.state = EmailState.TRASHED;
-            client.trash.add(client.selectedEmail);
+            client.trashProperty().add(client.selectedEmail);
         }
         list.remove(client.selectedEmail);
         resetSelectedEmail();
