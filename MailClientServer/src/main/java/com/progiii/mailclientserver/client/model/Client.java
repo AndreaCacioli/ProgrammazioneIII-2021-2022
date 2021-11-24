@@ -1,22 +1,26 @@
 package com.progiii.mailclientserver.client.model;
 
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Client {
     public final String id = "GruppoProgIII@javafxslays.it";
-    public ObservableList<Email> inbox;
-    public ObservableList<Email> drafts;
-    public ObservableList<Email> sent;
-    public ObservableList<Email> trash;
+
+    //TODO make them private
+    public SimpleListProperty<Email> inbox;
+    public SimpleListProperty<Email> drafts;
+    public SimpleListProperty<Email> sent;
+    public SimpleListProperty<Email> trash;
 
     public Email selectedEmail;
 
     public Client() {
-        inbox = FXCollections.observableArrayList();
-        drafts = FXCollections.observableArrayList();
-        sent = FXCollections.observableArrayList();
-        trash = FXCollections.observableArrayList();
+        inbox = new SimpleListProperty<Email>(FXCollections.observableArrayList());
+        drafts = new SimpleListProperty<Email>(FXCollections.observableArrayList());
+        sent = new SimpleListProperty<Email>(FXCollections.observableArrayList());
+        trash = new SimpleListProperty<Email>(FXCollections.observableArrayList());
 
         for (int i = 0; i < 10; i++) {
             inbox.add(Email.getRandomEmail(EmailState.RECEIVED));

@@ -37,7 +37,7 @@ public class ClientController {
     private void showInbox() {
         //TODO: fetch all mails and show them in the listView
         if(client.inbox.size() > 0) client.selectedEmail = client.inbox.get(0);
-        Bindings.bindContent(emailListView.getItems(), client.inbox);
+        emailListView.itemsProperty().bind(client.inbox);
         bindMailToView(client.selectedEmail);
     }
 
@@ -45,7 +45,7 @@ public class ClientController {
     private void showSent() {
         if(client.sent.size() > 0) client.selectedEmail = client.sent.get(0);
         //TODO: fetch all sent emails and show them in the listView
-        Bindings.bindContent(emailListView.getItems(), client.sent);
+        emailListView.itemsProperty().bind(client.sent);
         bindMailToView(client.selectedEmail);
     }
 
@@ -53,7 +53,7 @@ public class ClientController {
     private void showDrafts() {
         if(client.drafts.size() > 0) client.selectedEmail = client.drafts.get(0);
         //TODO: fetch all drafts mails and show them in the listView
-        Bindings.bindContent(emailListView.getItems(), client.drafts);
+        emailListView.itemsProperty().bind(client.drafts);
         bindMailToView(client.selectedEmail);
     }
 
@@ -62,14 +62,13 @@ public class ClientController {
     private void showTrash() {
         if(client.trash.size() > 0) client.selectedEmail = client.trash.get(0);
         //TODO: fetch all trashed mails and show them in the listView
-        Bindings.bindContent(emailListView.getItems(), client.trash);
+        emailListView.itemsProperty().bind(client.trash);
         bindMailToView(client.selectedEmail);
     }
 
     @FXML
     private void onListViewClick() {
         Email email = emailListView.getSelectionModel().getSelectedItems().get(0);
-        System.out.println(emailListView.getSelectionModel().getSelectedItems());
         client.selectedEmail = email;
         bindMailToView(email);
     }
