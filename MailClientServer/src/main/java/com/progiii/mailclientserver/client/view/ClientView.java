@@ -1,6 +1,5 @@
 package com.progiii.mailclientserver.client.view;
 
-import com.progiii.mailclientserver.client.controller.ClientController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

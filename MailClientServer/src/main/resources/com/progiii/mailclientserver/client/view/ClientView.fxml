@@ -102,7 +102,7 @@
                         <Insets left="15.0" top="4.0" />
                      </padding>
                   </Label>
-                  <ListView fx:id="emailListView" layoutX="1.0" layoutY="37.0" onMouseClicked="#showSelectedEmail" prefHeight="519.0" prefWidth="182.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="35.0" />
+                  <ListView fx:id="emailListView" layoutX="1.0" layoutY="37.0" onMouseClicked="#onListViewClick" prefHeight="519.0" prefWidth="182.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="35.0" />
           </children>
                <padding>
                   <Insets bottom="10.0" />
