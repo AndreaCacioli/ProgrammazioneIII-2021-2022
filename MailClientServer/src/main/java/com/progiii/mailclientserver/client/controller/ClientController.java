@@ -8,6 +8,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
 
 
 public class ClientController {
@@ -23,13 +25,20 @@ public class ClientController {
     @FXML
     private TextField subjectTextField;
 
+
+
     Client client;
+    Stage newMessageStage;
+
+    public void setStage(Stage newMessageStage) {this.newMessageStage = newMessageStage;}
+
+    public Client getClient(){return client;}
+    public void setClient(Client client) {this.client = client;}
 
     @FXML
     public void initialize() {
         if (this.client != null)
             throw new IllegalStateException("Model can only be initialized once");
-        client = new Client();
     }
 
     @FXML
@@ -65,19 +74,24 @@ public class ClientController {
     }
 
     @FXML
-    private void onListViewClick() {
+    private void onListViewClick(MouseEvent event) {
+
         Email email = emailListView.getSelectionModel().getSelectedItems().get(0);
         client.selectedEmail = email;
         bindMailToView(email);
-    }
 
-    private void bindMailToView(Email email) {
-        fromTextField.textProperty().bind(email.senderProperty());
-        toTextField.textProperty().bind(email.receiverProperty());
-        subjectTextField.textProperty().bind(email.subjectProperty());
-        selectedEmailView.textProperty().bind(email.bodyProperty());
-    }
+        if (event.getClickCount() == 2)
+        {
+            if(client.selectedEmail.state == EmailState.DRAFTED)
+            {
+                client.newEmail = client.selectedEmail;
+                try{
+                    newMessageStage.show();
+                }catch (Exception e) {e.printStackTrace();}
+            }
+        }
 
+    }
 
     @FXML
     private void deleteSelectedEmail() {
@@ -106,6 +120,23 @@ public class ClientController {
             }
 
         }
+    }
+
+    @FXML
+    private void onNewMailClicked()
+    {
+        try{
+            client.newEmail = new Email();
+            newMessageStage.show();
+        }catch (Exception e) {e.printStackTrace();}
+
+    }
+
+    private void bindMailToView(Email email) {
+        fromTextField.textProperty().bind(email.senderProperty());
+        toTextField.textProperty().bind(email.receiverProperty());
+        subjectTextField.textProperty().bind(email.subjectProperty());
+        selectedEmailView.textProperty().bind(email.bodyProperty());
     }
 
     private int sendSelectedEmailToTrash(ObservableList<Email> list)

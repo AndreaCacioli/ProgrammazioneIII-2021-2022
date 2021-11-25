@@ -11,6 +11,7 @@ public class Email {
     private final StringProperty receiver;
     private final StringProperty subject;
     private final StringProperty body;
+
     public EmailState state;
     LocalDateTime dateTime;
 

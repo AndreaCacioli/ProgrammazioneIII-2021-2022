@@ -23,6 +23,7 @@ public class Client {
     public SimpleListProperty<Email> trashProperty() {return trash;}
 
     public Email selectedEmail;
+    public Email newEmail;
 
     public Client() {
         inbox = new SimpleListProperty<Email>(FXCollections.observableArrayList());
