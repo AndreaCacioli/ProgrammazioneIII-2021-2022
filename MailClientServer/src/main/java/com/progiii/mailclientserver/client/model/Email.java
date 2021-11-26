@@ -82,13 +82,35 @@ public class Email {
 
     public static Email getRandomEmail(EmailState state) {
         Random r = new Random();
-        String[] possibleUsers = {"Gianni_gamer123@libero.it", "treMorten@gmail.com", "JordanLover95@gmail.com", "George@hotmail.com"};
+        String[] possibleUsers = {
+                "Gianni_gamer123@libero.it",
+                "treMorten@gmail.com",
+                "JordanLover95@gmail.com",
+                "George@hotmail.com",
+                "stressedWorker55@disrespectfulcompany.en",
+                "MomEllie@care.us",
+                "fatherLewis@irc.it",
+                "healtierTogether@gymgymgym.roar",
+                "jokerjokerjoker@isp.int"
+        };
 
-        String[] possibleSubjects = {"Your Marketing Sucks: Why You Need to Think Local", "Info: Your Product", "What your Cat says about YOU"};
+        String[] possibleSubjects = {
+                "Your Marketing Sucks: Why You Need to Think Local",
+                "Info: Your Product",
+                "What your Cat says about YOU",
+                "READ MY EMAIL!!! aehm... please...",
+                "Quit your lazy ass life and start getting your acts together: join our gym",
+                "How long is too long for an email subject???",
+                "Why your favorite Marvel character is worse than the worst DC character",
+                "If you could choose a comic book which of these would you choose and why the Marvel one?"
+        };
 
         String[] possibleBodies = {
                 "Dear TimeLord7725,\n We would absolutely love to have you as part of our international Marvel-Fans meeting on Sat 9-15 at 11p.m.",
-                "1234234141234\n",
+                "In all honesty I don't even know you right? But after all isn't it how things go nowadays?! Has internet really put us any closer or has it created a digital barrier separating us all?! IT IS TIME TO WAKE UP!!!\n",
+                "I don't think you really got the point of emails bro!\nYou don't just go around and tell people that internet is the worst.",
+                "Hi Mary, I'm really looking forward to meeting you in person for the first time!\nThis whole catfish... thing really had me fed up!\nSee you on Wednesday.\nxoxo\n",
+                "Working at a company can really push you to the limit sometimes! Please consider taking a break... PLEASE"
         };
 
         return new Email(

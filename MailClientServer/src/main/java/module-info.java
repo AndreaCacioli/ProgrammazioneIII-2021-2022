@@ -4,6 +4,7 @@ module com.progiii.mailclientserver {
 
     requires javafx.graphics;
     requires json.simple;
+    requires javafx.base;
 
     exports com.progiii.mailclientserver.client.view;
     opens com.progiii.mailclientserver.client.view to javafx.fxml;

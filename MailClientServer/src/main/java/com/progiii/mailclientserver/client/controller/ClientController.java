@@ -19,6 +19,8 @@ import org.json.simple.JSONObject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 
 
 public class ClientController {
@@ -211,6 +213,7 @@ public class ClientController {
         int i = 0;
         String[] names = {"inbox", "sent", "drafts", "trashed"};
         SimpleListProperty<Email>[] lists = new SimpleListProperty[]{client.inboxProperty(),client.sentProperty(),client.draftsProperty(),client.trashProperty()};
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         for (SimpleListProperty<Email> list : lists)
         {
             JSONArray array = new JSONArray();
@@ -221,18 +224,21 @@ public class ClientController {
                 obj.put("receiver", email.getReceiver());
                 obj.put("subject", email.getSubject());
                 obj.put("body", email.getBody());
-                obj.put("state", email.getState());
-                obj.put("dateTime", email.getDateTime());
+                obj.put("dateTime", email.getDateTime().format(formatter));
                 array.add(obj);
             }
             try {
-                FileWriter fileWriter = new FileWriter("./src/main/resources/com/progiii/mailclientserver/client/data/" + names[i]  + ".json");
+                FileWriter fileWriter = new FileWriter("./MailClientServer/src/main/resources/com/progiii/mailclientserver/client/data/" + names[i]  + ".json");
                 BufferedWriter out = new BufferedWriter(fileWriter);
-
+                fileWriter.flush();
                 //TODO find out why this prints...
                 System.out.println(array.toJSONString());
                 //...and this doesn't
                 out.write(array.toJSONString());
+                out.flush();
+                fileWriter.flush();
+                out.close();
+                fileWriter.close();
             }catch (Exception e){e.printStackTrace();}
             i++;
         }
