@@ -1,6 +1,6 @@
 package com.progiii.mailclientserver.client.model;
 
-import com.progiii.mailclientserver.client.utils.GravatarRequests;
+import com.progiii.mailclientserver.utils.GravatarRequests;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;

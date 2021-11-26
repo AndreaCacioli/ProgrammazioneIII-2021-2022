@@ -1,4 +1,4 @@
-package com.progiii.mailclientserver.client.utils;
+package com.progiii.mailclientserver.utils;
 
 import javafx.scene.image.Image;
 

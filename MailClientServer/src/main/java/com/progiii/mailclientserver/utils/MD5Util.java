@@ -1,6 +1,5 @@
-package com.progiii.mailclientserver.client.utils;
+package com.progiii.mailclientserver.utils;
 
-import java.util.*;
 import java.io.*;
 import java.security.*;
 

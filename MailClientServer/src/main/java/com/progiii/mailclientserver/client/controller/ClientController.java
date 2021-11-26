@@ -3,6 +3,7 @@ package com.progiii.mailclientserver.client.controller;
 import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
 import com.progiii.mailclientserver.client.model.EmailState;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -12,6 +13,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 
 
 public class ClientController {
@@ -97,7 +104,7 @@ public class ClientController {
 
         if (event.getClickCount() == 2)
         {
-            if(client.selectedEmail.state == EmailState.DRAFTED)
+            if(client.selectedEmail.getState() == EmailState.DRAFTED)
             {
                 client.newEmail = client.selectedEmail;
                 try{
@@ -111,7 +118,7 @@ public class ClientController {
     @FXML
     private void deleteSelectedEmail() {
         if (client.selectedEmail != null) {
-            switch (client.selectedEmail.state) {
+            switch (client.selectedEmail.getState()) {
                 case DRAFTED -> {
                     int index = sendSelectedEmailToTrash(client.draftsProperty());
                     showNextEmail(index);
@@ -158,9 +165,9 @@ public class ClientController {
     {
         int ret = list.indexOf(client.selectedEmail);
 
-        if(client.selectedEmail.state != EmailState.TRASHED)
+        if(client.selectedEmail.getState() != EmailState.TRASHED)
         {
-            client.selectedEmail.state = EmailState.TRASHED;
+            client.selectedEmail.setState(EmailState.TRASHED);
             client.trashProperty().add(client.selectedEmail);
         }
         list.remove(client.selectedEmail);
@@ -198,6 +205,39 @@ public class ClientController {
         selectedEmailView.setText("");
 
     }
+
+    public void saveAll()
+    {
+        int i = 0;
+        String[] names = {"inbox", "sent", "drafts", "trashed"};
+        SimpleListProperty<Email>[] lists = new SimpleListProperty[]{client.inboxProperty(),client.sentProperty(),client.draftsProperty(),client.trashProperty()};
+        for (SimpleListProperty<Email> list : lists)
+        {
+            JSONArray array = new JSONArray();
+            for(Email email : list)
+            {
+                JSONObject obj = new JSONObject();
+                obj.put("sender", email.getSender());
+                obj.put("receiver", email.getReceiver());
+                obj.put("subject", email.getSubject());
+                obj.put("body", email.getBody());
+                obj.put("state", email.getState());
+                obj.put("dateTime", email.getDateTime());
+                array.add(obj);
+            }
+            try {
+                FileWriter fileWriter = new FileWriter("./src/main/resources/com/progiii/mailclientserver/client/data/" + names[i]  + ".json");
+                BufferedWriter out = new BufferedWriter(fileWriter);
+
+                //TODO find out why this prints...
+                System.out.println(array.toJSONString());
+                //...and this doesn't
+                out.write(array.toJSONString());
+            }catch (Exception e){e.printStackTrace();}
+            i++;
+        }
+    }
+
 
 
 }

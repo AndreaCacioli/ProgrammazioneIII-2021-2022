@@ -52,6 +52,8 @@ public class ClientView extends Application {
         //Binding elemnts that do not change during the life of the app
         controller.getAvatarView().imageProperty().bind(client.imageProperty());
         controller.getAccountLabel().textProperty().bind(client.addressProperty());
+
+        controller.saveAll();
     }
 
     public static void main(String[] args) {

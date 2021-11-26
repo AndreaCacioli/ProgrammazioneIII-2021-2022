@@ -13,8 +13,9 @@ public class Email {
     private final StringProperty subject;
     private final StringProperty body;
 
-    public EmailState state;
-    LocalDateTime dateTime;
+
+    private EmailState state;
+    private LocalDateTime dateTime;
 
     public String getSender() {
         return sender.get();
@@ -44,9 +45,13 @@ public class Email {
         return body.get();
     }
 
-    public StringProperty bodyProperty() {
-        return body;
-    }
+    public StringProperty bodyProperty() {return body;}
+
+    public LocalDateTime getDateTime() {return dateTime;}
+
+    public EmailState getState() {return state;}
+
+    public void setState(EmailState state) {this.state = state;}
 
 
     public Email(String sender, String receiver, String subject, String body, EmailState state) {
