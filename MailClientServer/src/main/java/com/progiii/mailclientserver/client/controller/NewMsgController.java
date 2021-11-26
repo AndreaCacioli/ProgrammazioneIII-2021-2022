@@ -10,13 +10,10 @@ import javafx.scene.control.TextField;
 public class NewMsgController {
 
     @FXML
-    private TextField textFieldA;
+    private TextField textFieldTo;
 
     @FXML
-    private TextField textFieldCc;
-
-    @FXML
-    private TextField textFieldOggetto;
+    private TextField textFieldSubject;
 
     @FXML
     private TextArea textAreaMsg;
@@ -24,23 +21,22 @@ public class NewMsgController {
 
     Client client;
 
-    public void setClient(Client client) {this.client = client;}
-    public Client getClient() {return client;}
+    public Client getClient() {
+        return client;
+    }
 
-    //TODO mettere in inglese la grafica
+    public void setClient(Client client) {
+        this.client = client;
+    }
 
-
-    public void bindEverything()
-    {
-        //TODO rimuovere cc dalla grafica
+    public void bindEverything() {
+        textFieldTo.textProperty().bindBidirectional(client.newEmail.receiverProperty());
+        textFieldSubject.textProperty().bindBidirectional(client.newEmail.subjectProperty());
         textAreaMsg.textProperty().bindBidirectional(client.newEmail.bodyProperty());
-        textFieldOggetto.textProperty().bindBidirectional(client.newEmail.subjectProperty());
-        textFieldA.textProperty().bindBidirectional(client.newEmail.receiverProperty());
     }
 
     @FXML
-    public void onSentButtonClicked(ActionEvent event)
-    {
+    public void onSentButtonClicked(ActionEvent event) {
 
     }
 }

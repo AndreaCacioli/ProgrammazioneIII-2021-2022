@@ -19,9 +19,14 @@
          <children>
             <ButtonBar prefHeight="40.0" prefWidth="200.0">
                <buttons>
-                  <Button fx:id="sendButton" mnemonicParsing="false" prefHeight="25.0" prefWidth="30.0" styleClass="toolbarButton" onAction="#onSentButtonClicked">
+                  <Button fx:id="sendButton" mnemonicParsing="false" onAction="#onSentButtonClicked" prefHeight="25.0" prefWidth="30.0" styleClass="toolbarButton">
                      <graphic>
                         <SVGPath content="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493ZM15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z" />
+                     </graphic>
+                  </Button>
+                  <Button fx:id="draftsButton" mnemonicParsing="false" onAction="#onSentButtonClicked" prefHeight="25.0" prefWidth="30.0" styleClass="toolbarButton">
+                     <graphic>
+                        <SVGPath content="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2zM14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
                      </graphic>
                   </Button>
                </buttons>
@@ -37,7 +42,7 @@
                <children>
                   <AnchorPane prefHeight="200.0" prefWidth="17.0">
                      <children>
-                        <Label alignment="CENTER" style="&#10;" text="A:" textAlignment="CENTER" wrapText="false" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <Label alignment="CENTER" style="&#10;" text="To:" textAlignment="CENTER" wrapText="false" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <font>
                               <Font size="18.0" fx:id="x1" />
                            </font>
@@ -46,10 +51,13 @@
                            </textFill>
                         </Label>
                      </children>
+                     <padding>
+                        <Insets right="2.0" />
+                     </padding>
                   </AnchorPane>
                   <AnchorPane HBox.hgrow="ALWAYS">
                      <children>
-                        <TextField fx:id="textFieldA" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                        <TextField fx:id="textFieldTo" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
                      </children>
                   </AnchorPane>
                </children>
@@ -68,35 +76,7 @@
                <children>
                   <AnchorPane prefHeight="200.0" prefWidth="17.0">
                      <children>
-                        <Label alignment="CENTER" style="&#10;" text="Cc:" textAlignment="CENTER" wrapText="false" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
-                           <font>
-                              <Font size="18.0" fx:id="x11" />
-                           </font>
-                           <textFill>
-                              <Color red="0.624" green="0.624" blue="0.624" fx:id="x21" />
-                           </textFill>
-                        </Label>
-                     </children>
-                  </AnchorPane>
-                  <AnchorPane HBox.hgrow="ALWAYS">
-                     <children>
-                        <TextField fx:id="textFieldCc" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-                     </children>
-                  </AnchorPane>
-               </children>
-            </HBox>
-         </children>
-         <padding>
-            <Insets left="10.0" right="10.0" />
-         </padding>
-      </AnchorPane>
-      <AnchorPane>
-         <children>
-            <HBox maxHeight="25.0" minHeight="25.0" prefHeight="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-               <children>
-                  <AnchorPane prefHeight="200.0" prefWidth="17.0">
-                     <children>
-                        <Label alignment="CENTER" style="&#10;" text="Oggetto:" textAlignment="CENTER" wrapText="false" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <Label alignment="CENTER" style="&#10;" text="Subject:" textAlignment="CENTER" wrapText="false" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <font>
                               <Font size="18.0" fx:id="x12" />
                            </font>
@@ -105,17 +85,20 @@
                            </textFill>
                         </Label>
                      </children>
+                     <padding>
+                        <Insets right="2.0" />
+                     </padding>
                   </AnchorPane>
                   <AnchorPane HBox.hgrow="ALWAYS">
                      <children>
-                        <TextField fx:id="textFieldOggetto" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                        <TextField fx:id="textFieldSubject" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
                      </children>
                   </AnchorPane>
                </children>
             </HBox>
          </children>
          <padding>
-            <Insets left="10.0" right="10.0" />
+            <Insets left="10.0" right="10.0" top="5.0" />
          </padding>
       </AnchorPane>
       <AnchorPane VBox.vgrow="ALWAYS">

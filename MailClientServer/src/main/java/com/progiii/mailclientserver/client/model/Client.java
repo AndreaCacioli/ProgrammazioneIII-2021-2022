@@ -1,9 +1,7 @@
 package com.progiii.mailclientserver.client.model;
 
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 public class Client {
     public final String id = "GruppoProgIII@javafxslays.it";
@@ -14,13 +12,21 @@ public class Client {
     private SimpleListProperty<Email> sent;
     private SimpleListProperty<Email> trash;
 
-    public SimpleListProperty<Email> inboxProperty() {return inbox;}
+    public SimpleListProperty<Email> inboxProperty() {
+        return inbox;
+    }
 
-    public SimpleListProperty<Email> draftsProperty() {return drafts;}
+    public SimpleListProperty<Email> draftsProperty() {
+        return drafts;
+    }
 
-    public SimpleListProperty<Email> sentProperty() {return sent;}
+    public SimpleListProperty<Email> sentProperty() {
+        return sent;
+    }
 
-    public SimpleListProperty<Email> trashProperty() {return trash;}
+    public SimpleListProperty<Email> trashProperty() {
+        return trash;
+    }
 
     public Email selectedEmail;
     public Email newEmail;

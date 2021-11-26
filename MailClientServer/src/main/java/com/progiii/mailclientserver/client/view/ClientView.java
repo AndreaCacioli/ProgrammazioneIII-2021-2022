@@ -43,7 +43,7 @@ public class ClientView extends Application {
 
         stage.setTitle("Mail Sender - 9000");
         stage.setScene(scene);
-        scene.getStylesheets().add(Objects.requireNonNull(ClientView.class.getResource("buttonShadow.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(ClientView.class.getResource("appStyle.css")).toExternalForm());
         stage.show();
     }
 
