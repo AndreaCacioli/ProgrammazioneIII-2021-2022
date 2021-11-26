@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
@@ -24,6 +25,8 @@ public class ClientController {
     private TextField toTextField;
     @FXML
     private TextField subjectTextField;
+    @FXML
+    private ImageView avatarView;
 
 
 
@@ -31,12 +34,14 @@ public class ClientController {
     Stage newMessageStage;
 
     public void setStage(Stage newMessageStage) {this.newMessageStage = newMessageStage;}
-
     public Client getClient(){return client;}
     public void setClient(Client client) {this.client = client;}
+    public ImageView getAvatarView() {return avatarView;}
+
 
     @FXML
     public void initialize() {
+
         if (this.client != null)
             throw new IllegalStateException("Model can only be initialized once");
     }

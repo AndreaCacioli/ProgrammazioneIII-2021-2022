@@ -45,6 +45,7 @@ public class ClientView extends Application {
         stage.setScene(scene);
         scene.getStylesheets().add(Objects.requireNonNull(ClientView.class.getResource("appStyle.css")).toExternalForm());
         stage.show();
+        controller.getAvatarView().imageProperty().bind(client.imageProperty());
     }
 
     public static void main(String[] args) {
