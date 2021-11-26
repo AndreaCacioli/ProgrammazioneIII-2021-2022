@@ -5,6 +5,7 @@ import com.progiii.mailclientserver.client.model.Email;
 import com.progiii.mailclientserver.client.model.EmailState;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -27,6 +28,8 @@ public class ClientController {
     private TextField subjectTextField;
     @FXML
     private ImageView avatarView;
+    @FXML
+    private Label accountLabel;
 
 
 
@@ -34,9 +37,12 @@ public class ClientController {
     Stage newMessageStage;
 
     public void setStage(Stage newMessageStage) {this.newMessageStage = newMessageStage;}
+    @SuppressWarnings("all")
     public Client getClient(){return client;}
+    @SuppressWarnings("all")
     public void setClient(Client client) {this.client = client;}
     public ImageView getAvatarView() {return avatarView;}
+    public Label getAccountLabel() {return accountLabel;}
 
 
     @FXML
@@ -48,6 +54,7 @@ public class ClientController {
 
     @FXML
     private void showInbox() {
+        client.selectedEmail = new Email();
         //TODO: fetch all mails and show them in the listView
         if(client.inboxProperty().size() > 0) client.selectedEmail = client.inboxProperty().get(0);
         emailListView.itemsProperty().bind(client.inboxProperty());
@@ -56,6 +63,7 @@ public class ClientController {
 
     @FXML
     private void showSent() {
+        client.selectedEmail = new Email();
         if(client.sentProperty().size() > 0) client.selectedEmail = client.sentProperty().get(0);
         //TODO: fetch all sent emails and show them in the listView
         emailListView.itemsProperty().bind(client.sentProperty());
@@ -64,6 +72,7 @@ public class ClientController {
 
     @FXML
     private void showDrafts() {
+        client.selectedEmail = new Email();
         if(client.draftsProperty().size() > 0) client.selectedEmail = client.draftsProperty().get(0);
         //TODO: fetch all drafts mails and show them in the listView
         emailListView.itemsProperty().bind(client.draftsProperty());
@@ -72,6 +81,7 @@ public class ClientController {
 
     @FXML
     private void showTrash() {
+        client.selectedEmail = new Email();
         if(client.trashProperty().size() > 0) client.selectedEmail = client.trashProperty().get(0);
         //TODO: fetch all trashed mails and show them in the listView
         emailListView.itemsProperty().bind(client.trashProperty());
@@ -161,7 +171,15 @@ public class ClientController {
 
     private void showNextEmail(int indexOfEmailToBeShown)
     {
-        if (indexOfEmailToBeShown > 0 && indexOfEmailToBeShown < emailListView.getItems().size())
+        if(indexOfEmailToBeShown == 0 &&  emailListView.getItems().size() == 0) return;
+
+        if(indexOfEmailToBeShown == 0)
+        {
+            emailListView.getSelectionModel().select(indexOfEmailToBeShown);
+            client.selectedEmail = emailListView.getItems().get(indexOfEmailToBeShown);
+            bindMailToView(client.selectedEmail);
+        }
+        if (indexOfEmailToBeShown > 0 && indexOfEmailToBeShown - 1 < emailListView.getItems().size())
         {
             emailListView.getSelectionModel().select(indexOfEmailToBeShown - 1);
             client.selectedEmail = emailListView.getItems().get(indexOfEmailToBeShown - 1);
@@ -180,5 +198,6 @@ public class ClientController {
         selectedEmailView.setText("");
 
     }
+
 
 }

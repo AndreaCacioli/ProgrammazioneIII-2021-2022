@@ -32,8 +32,11 @@ public class ClientView extends Application {
         Scene scene1 = new Scene(v, 600, 400);
 
         Stage newStage = new Stage();
-        newStage.setOnShown((event1) -> {
+        newStage.setOnShown((event) -> {
             controller1.bindEverything();
+        });
+        newStage.setOnCloseRequest((event) -> {
+            controller1.onSendToDraftsButtonClicked(event);
         });
         newStage.setScene(scene1);
         newStage.setTitle("New Email");
@@ -45,7 +48,10 @@ public class ClientView extends Application {
         stage.setScene(scene);
         scene.getStylesheets().add(Objects.requireNonNull(ClientView.class.getResource("appStyle.css")).toExternalForm());
         stage.show();
+
+        //Binding elemnts that do not change during the life of the app
         controller.getAvatarView().imageProperty().bind(client.imageProperty());
+        controller.getAccountLabel().textProperty().bind(client.addressProperty());
     }
 
     public static void main(String[] args) {

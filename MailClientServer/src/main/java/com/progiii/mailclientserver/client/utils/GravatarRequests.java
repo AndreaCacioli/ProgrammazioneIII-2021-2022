@@ -13,7 +13,7 @@ public class GravatarRequests
         Image ret = null;
         try{
         String hash = MD5Util.md5Hex(id);
-        URL url = new URL("https://www.gravatar.com/avatar/" + hash + "?d=monsterid");
+        URL url = new URL("https://www.gravatar.com/avatar/" + hash + "?d=robohash");
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
         int response = con.getResponseCode();

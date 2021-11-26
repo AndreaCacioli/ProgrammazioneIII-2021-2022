@@ -1,20 +1,15 @@
 package com.progiii.mailclientserver.client.model;
 
 import com.progiii.mailclientserver.client.utils.GravatarRequests;
-import com.progiii.mailclientserver.client.utils.MD5Util;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 public class Client
 {
-    public  String id = "GruppoProgIII@javafxslayss.it";
-
+    private SimpleStringProperty address;
     private SimpleListProperty<Email> inbox;
     private SimpleListProperty<Email> drafts;
     private SimpleListProperty<Email> sent;
@@ -22,6 +17,8 @@ public class Client
     private SimpleObjectProperty<Image> image;
 
     public SimpleObjectProperty<Image> imageProperty() {return image;}
+
+    public SimpleStringProperty addressProperty() {return address;}
 
     public SimpleListProperty<Email> inboxProperty() {return inbox;}
 
@@ -36,7 +33,9 @@ public class Client
 
     public Client()
     {
-        image = new SimpleObjectProperty<Image>(GravatarRequests.getProfilePicture(id));
+        address = new SimpleStringProperty();
+        address.setValue(Email.getRandomAddress());
+        image = new SimpleObjectProperty<Image>(GravatarRequests.getProfilePicture(address.getValue()));
         inbox = new SimpleListProperty<Email>(FXCollections.observableArrayList());
         drafts = new SimpleListProperty<Email>(FXCollections.observableArrayList());
         sent = new SimpleListProperty<Email>(FXCollections.observableArrayList());
