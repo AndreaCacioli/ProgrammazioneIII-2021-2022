@@ -51,15 +51,15 @@
 
 <!--suppress ALL -->
 
-<VBox opacity="0.75" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.progiii.mailclientserver.client.controller.ClientController">
+<VBox opacity="0.75" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.progiii.mailclientserver.client.controller.ClientController">
   <children>
     <SplitPane dividerPositions="0.18429844097995546, 0.5" focusTraversable="true" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
       <items>
-            <VBox maxWidth="200.0" minWidth="100.0" prefHeight="200.0" prefWidth="100.0">
+            <VBox alignment="TOP_CENTER" maxWidth="200.0" minWidth="100.0" prefHeight="200.0" prefWidth="100.0">
                <children>
                   <ImageView fx:id="avatarView" fitHeight="100.0" fitWidth="167.0" pickOnBounds="true" preserveRatio="true" VBox.vgrow="ALWAYS">
                      <image>
-                        <Image url="@IMG_0245.JPG" />
+                        <Image url="@profile.png" />
                      </image>
                   </ImageView>
                   <Label fx:id="accountLabel" prefHeight="16.0" prefWidth="169.0" text="ACCOUNT" VBox.vgrow="ALWAYS" />
@@ -85,7 +85,7 @@
                   </Button>
                </children>
             </VBox>
-        <AnchorPane maxWidth="270.0" minWidth="260.0" prefHeight="200.0" prefWidth="200.0">
+        <AnchorPane maxWidth="300.0" minWidth="300.0" prefHeight="200.0" prefWidth="200.0">
           <children>
             <Label alignment="CENTER" layoutX="14.0" layoutY="14.0" style="&#10;" text="List of emails" textAlignment="CENTER" wrapText="false" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <font>
