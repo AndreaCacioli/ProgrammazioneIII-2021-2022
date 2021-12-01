@@ -217,23 +217,22 @@ public class ClientController {
         for (SimpleListProperty<Email> list : lists)
         {
             JSONArray array = new JSONArray();
+            JSONObject emailDetails = new JSONObject();
             for(Email email : list)
             {
-                JSONObject obj = new JSONObject();
-                obj.put("sender", email.getSender());
-                obj.put("receiver", email.getReceiver());
-                obj.put("subject", email.getSubject());
-                obj.put("body", email.getBody());
-                obj.put("dateTime", email.getDateTime().format(formatter));
-                array.add(obj);
+                emailDetails.put("sender", email.getSender());
+                emailDetails.put("receiver", email.getReceiver());
+                emailDetails.put("subject", email.getSubject());
+                emailDetails.put("body", email.getBody());
+                emailDetails.put("dateTime", email.getDateTime().format(formatter));
             }
+            JSONObject emailList = new JSONObject();
+            emailList.put("email", emailDetails);
+            array.add(emailList);
             try {
                 FileWriter fileWriter = new FileWriter("./MailClientServer/src/main/resources/com/progiii/mailclientserver/client/data/" + names[i]  + ".json");
                 BufferedWriter out = new BufferedWriter(fileWriter);
                 fileWriter.flush();
-                //TODO find out why this prints...
-                System.out.println(array.toJSONString());
-                //...and this doesn't
                 out.write(array.toJSONString());
                 out.flush();
                 fileWriter.flush();
