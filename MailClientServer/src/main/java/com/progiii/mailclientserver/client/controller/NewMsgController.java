@@ -46,10 +46,8 @@ public class NewMsgController {
     }
 
     @FXML
-    public void onSendToDraftsButtonClicked(Event event)
-    {
-        if(!client.draftsProperty().contains(client.newEmail))
-        {
+    public void onSendToDraftsButtonClicked(Event event) {
+        if (!client.draftsProperty().contains(client.newEmail)) {
             client.draftsProperty().add(client.newEmail);
         }
 
@@ -59,14 +57,13 @@ public class NewMsgController {
 
         client.newEmail = new Email();
 
-        if(event instanceof MouseEvent)
-        {
+        if (event instanceof MouseEvent) {
             //close the window
             Node source = (Node) event.getSource();
             Stage stage = (Stage) source.getScene().getWindow();
             stage.close();
         }
-        //else if(event instanceof WindowEvent) return;
+        client.saveAll();
     }
 
 }

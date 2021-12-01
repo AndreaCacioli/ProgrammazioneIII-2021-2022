@@ -142,7 +142,7 @@ public class ClientController {
                 }
 
             }
-
+            client.saveAll();
         }
     }
 
@@ -208,40 +208,7 @@ public class ClientController {
 
     }
 
-    public void saveAll()
-    {
-        int i = 0;
-        String[] names = {"inbox", "sent", "drafts", "trashed"};
-        SimpleListProperty<Email>[] lists = new SimpleListProperty[]{client.inboxProperty(),client.sentProperty(),client.draftsProperty(),client.trashProperty()};
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-        for (SimpleListProperty<Email> list : lists)
-        {
-            JSONArray array = new JSONArray();
-            JSONObject emailDetails = new JSONObject();
-            for(Email email : list)
-            {
-                emailDetails.put("sender", email.getSender());
-                emailDetails.put("receiver", email.getReceiver());
-                emailDetails.put("subject", email.getSubject());
-                emailDetails.put("body", email.getBody());
-                emailDetails.put("dateTime", email.getDateTime().format(formatter));
-            }
-            JSONObject emailList = new JSONObject();
-            emailList.put("email", emailDetails);
-            array.add(emailList);
-            try {
-                FileWriter fileWriter = new FileWriter("./MailClientServer/src/main/resources/com/progiii/mailclientserver/client/data/" + names[i]  + ".json");
-                BufferedWriter out = new BufferedWriter(fileWriter);
-                fileWriter.flush();
-                out.write(array.toJSONString());
-                out.flush();
-                fileWriter.flush();
-                out.close();
-                fileWriter.close();
-            }catch (Exception e){e.printStackTrace();}
-            i++;
-        }
-    }
+
 
 
 

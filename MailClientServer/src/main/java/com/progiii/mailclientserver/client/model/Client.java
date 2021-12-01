@@ -7,9 +7,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.time.format.DateTimeFormatter;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -59,46 +58,72 @@ public class Client {
         drafts = new SimpleListProperty<Email>(FXCollections.observableArrayList());
         sent = new SimpleListProperty<Email>(FXCollections.observableArrayList());
         trash = new SimpleListProperty<Email>(FXCollections.observableArrayList());
-        /*for(int i=0;i<10;i++){
-            inbox.add(Email.getRandomEmail(EmailState.RECEIVED));
-            drafts.add(Email.getRandomEmail(EmailState.DRAFTED));
-            sent.add(Email.getRandomEmail(EmailState.SENT));
-            trash.add(Email.getRandomEmail(EmailState.TRASHED));
-        }*/
 
         String[] names = {"inbox", "sent", "drafts", "trashed"};
-        //for (int i = 0; i < names.length; i++)
-        readFromJSon("./MailClientServer/src/main/resources/com/progiii/mailclientserver/client/data/" + names[2] + ".json", drafts);
+        SimpleListProperty[] simpleListProperties = {inbox, sent, drafts, trash};
+        EmailState[] emailStates = {EmailState.RECEIVED, EmailState.SENT, EmailState.DRAFTED, EmailState.TRASHED};
+        for (int i = 0; i < names.length; i++)
+            readFromJSon("./MailClientServer/src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json", simpleListProperties[i], emailStates[i]);
 
     }
 
-    private void readFromJSon(String JSonFile, SimpleListProperty<Email> state) {
+    private void readFromJSon(String JSonFile, SimpleListProperty<Email> state, EmailState emailState) {
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader(JSonFile)) {
             //Read JSON file
             Object obj = jsonParser.parse(reader);
             JSONArray emailList = (JSONArray) obj;
             System.out.println(emailList);
-            for(int i = 0; i < emailList.size()-1;i++) {
-                state.add(parseEmailObject((JSONObject) emailList.get(i)));
-                System.out.println("email:"+emailList.get(i));
+            for (int i = 0; i < emailList.size() - 1; i++) {
+                state.add(parseEmailObject((JSONObject) emailList.get(i), emailState));
             }
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static Email parseEmailObject(JSONObject email) {
+    private static Email parseEmailObject(JSONObject email, EmailState emailState) {
         JSONObject emailObject = (JSONObject) email.get("email");
         String sender = (String) emailObject.get("sender");
         String receiver = (String) emailObject.get("receiver");
         String subject = (String) emailObject.get("subject");
         String body = (String) emailObject.get("body");
-        return new Email(sender, receiver, subject, body, EmailState.DRAFTED);
+        return new Email(sender, receiver, subject, body, emailState);
+    }
+
+    public void saveAll() {
+        int i = 0;
+        String[] names = {"inbox", "sent", "drafts", "trashed"};
+        SimpleListProperty<Email>[] lists = new SimpleListProperty[]{this.inboxProperty(), this.sentProperty(), this.draftsProperty(), this.trashProperty()};
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        for (SimpleListProperty<Email> list : lists) {
+            JSONArray array = new JSONArray();
+            for (Email email : list) {
+                JSONObject emailDetails = new JSONObject();
+                emailDetails.put("sender", email.getSender());
+                emailDetails.put("receiver", email.getReceiver());
+                emailDetails.put("subject", email.getSubject());
+                emailDetails.put("body", email.getBody());
+                emailDetails.put("dateTime", email.getDateTime().format(formatter));
+                JSONObject emailList = new JSONObject();
+                emailList.put("email", emailDetails);
+                array.add(emailList);
+            }
+
+            try {
+                FileWriter fileWriter = new FileWriter("./MailClientServer/src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json");
+                BufferedWriter out = new BufferedWriter(fileWriter);
+                fileWriter.flush();
+                out.write(array.toJSONString());
+                out.flush();
+                fileWriter.flush();
+                out.close();
+                fileWriter.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            i++;
+        }
     }
 }

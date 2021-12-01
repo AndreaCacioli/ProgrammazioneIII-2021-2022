@@ -53,7 +53,6 @@ public class ClientView extends Application {
         controller.getAvatarView().imageProperty().bind(client.imageProperty());
         controller.getAccountLabel().textProperty().bind(client.addressProperty());
 
-        controller.saveAll();
     }
 
     public static void main(String[] args) {
