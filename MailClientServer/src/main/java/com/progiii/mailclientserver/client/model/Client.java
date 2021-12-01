@@ -63,7 +63,7 @@ public class Client {
         SimpleListProperty[] simpleListProperties = {inbox, sent, drafts, trash};
         EmailState[] emailStates = {EmailState.RECEIVED, EmailState.SENT, EmailState.DRAFTED, EmailState.TRASHED};
         for (int i = 0; i < names.length; i++)
-            readFromJSon("./MailClientServer/src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json", simpleListProperties[i], emailStates[i]);
+            readFromJSon("./src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json", simpleListProperties[i], emailStates[i]);
 
     }
 
@@ -73,7 +73,6 @@ public class Client {
             //Read JSON file
             Object obj = jsonParser.parse(reader);
             JSONArray emailList = (JSONArray) obj;
-            System.out.println(emailList);
             for (int i = 0; i < emailList.size() - 1; i++) {
                 state.add(parseEmailObject((JSONObject) emailList.get(i), emailState));
             }
