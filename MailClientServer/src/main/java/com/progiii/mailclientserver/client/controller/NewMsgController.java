@@ -53,6 +53,9 @@ public class NewMsgController {
             Socket socket = new Socket(InetAddress.getLocalHost(),6969);
             ObjectOutputStream stream = new ObjectOutputStream(socket.getOutputStream());
             stream.writeObject(new Action(client , client.newEmail.getReceiver(), Operation.SEND_EMAIL));
+            stream.writeObject(new String(client.newEmail.getSubject()));
+            stream.writeObject(new String(client.newEmail.getBody()));
+            stream.writeObject(client.newEmail.getDateTime());
             stream.flush();
         }catch (Exception ex) {ex.printStackTrace();}
     }

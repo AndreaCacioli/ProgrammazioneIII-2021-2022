@@ -6,15 +6,26 @@ import javafx.beans.property.SimpleStringProperty;
 
 import java.util.ArrayList;
 
-public class Server
-{
+public class Server {
     ArrayList<Action> actions;
     ArrayList<Client> clients;
     SimpleStringProperty log;
     boolean running = true;
 
-    public boolean isRunning()
-    {
+    public ArrayList<Action> getActions() {
+        return actions;
+    }
+
+    public ArrayList<Client> getClients() {
+        return clients;
+    }
+
+    public void addClients(Client c) {
+        if (c != null)
+            clients.add(c);
+    }
+
+    public boolean isRunning() {
         return running;
     }
 
@@ -22,17 +33,17 @@ public class Server
         this.running = running;
     }
 
-    public SimpleStringProperty logProperty() {return  log;}
+    public SimpleStringProperty logProperty() {
+        return log;
+    }
 
-    public Server()
-    {
+    public Server() {
         clients = new ArrayList<Client>();
         actions = new ArrayList<Action>();
         log = new SimpleStringProperty();
     }
 
-    public void add(Action incomingRequest)
-    {
+    public void add(Action incomingRequest) {
         actions.add(incomingRequest);
         log.setValue(log.getValue() + incomingRequest.toString() + '\n');
     }

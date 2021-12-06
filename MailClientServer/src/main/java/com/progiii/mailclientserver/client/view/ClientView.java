@@ -24,6 +24,9 @@ public class ClientView extends Application {
         ClientController controller = fxmlLoader.getController();
         controller.setClient(client);
 
+        stage.setOnCloseRequest((event) -> {
+            controller.shutdownThread();
+        });
 
         FXMLLoader fxmlLoader1 = new FXMLLoader(getClass().getResource("newMsgView.fxml"));
         Parent v = fxmlLoader1.load();

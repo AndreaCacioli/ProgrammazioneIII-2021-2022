@@ -4,14 +4,20 @@ import com.progiii.mailclientserver.client.model.Client;
 
 import java.io.Serializable;
 
-public class Action implements Serializable
-{
+public class Action implements Serializable {
     String sender;
     String receiver;
     Operation operation;
 
-    public Action(Client sender, String receiverAddress, Operation operation)
-    {
+    public String getSender() {
+        return sender;
+    }
+
+    public String getReceiver() {
+        return receiver;
+    }
+
+    public Action(Client sender, String receiverAddress, Operation operation) {
         this.sender = sender.getAddress();
         this.receiver = receiverAddress;
         this.operation = operation;

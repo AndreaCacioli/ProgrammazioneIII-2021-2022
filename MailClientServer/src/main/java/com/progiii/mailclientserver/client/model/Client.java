@@ -60,7 +60,8 @@ public class Client
 
     public Client() {
         address = new SimpleStringProperty();
-        address.setValue(Email.getRandomAddress());
+        //address.setValue(Email.getRandomAddress());
+        address.setValue("Gianni_gamer123@libero.it");
         image = new SimpleObjectProperty<Image>(GravatarRequests.getProfilePicture(address.getValue()));
         inbox = new SimpleListProperty<Email>(FXCollections.observableArrayList());
         drafts = new SimpleListProperty<Email>(FXCollections.observableArrayList());
@@ -78,7 +79,6 @@ public class Client
     private void readFromJSon(String JSonFile, SimpleListProperty<Email> state, EmailState emailState) {
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader(JSonFile)) {
-            //Read JSON file
             Object obj = jsonParser.parse(reader);
             JSONArray emailList = (JSONArray) obj;
             for (int i = 0; i < emailList.size() - 1; i++) {
@@ -119,13 +119,13 @@ public class Client
             }
 
             try {
-                FileWriter fileWriter = new FileWriter("./MailClientServer/src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json");
+                FileWriter fileWriter = new FileWriter("./src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json");
                 BufferedWriter out = new BufferedWriter(fileWriter);
                 fileWriter.flush();
                 out.write(array.toJSONString());
                 out.flush();
                 fileWriter.flush();
-                out.close();
+                out.close(); /*TODO mettere in finally?*/
                 fileWriter.close();
             } catch (Exception e) {
                 e.printStackTrace();

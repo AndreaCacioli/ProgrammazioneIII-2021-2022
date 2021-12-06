@@ -3,7 +3,6 @@ package com.progiii.mailclientserver.client.controller;
 import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
 import com.progiii.mailclientserver.client.model.EmailState;
-import javafx.beans.property.SimpleListProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -13,14 +12,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 public class ClientController {
@@ -44,6 +38,7 @@ public class ClientController {
 
     Client client;
     Stage newMessageStage;
+    private ScheduledExecutorService exec;
 
     public void setStage(Stage newMessageStage) {this.newMessageStage = newMessageStage;}
     @SuppressWarnings("all")
@@ -58,13 +53,14 @@ public class ClientController {
     @FXML
     public void initialize() {
         if (this.client != null)
-            throw new IllegalStateException("Model can only be initialized once");
+            throw new IllegalStateException("Client can only be initialized once");
+        updateEmailJSon();
     }
 
     @FXML
     private void showInbox() {
-        client.selectedEmail = new Email();
         //TODO: fetch all mails and show them in the listView
+        client.selectedEmail = new Email();
         if(client.inboxProperty().size() > 0) client.selectedEmail = client.inboxProperty().get(0);
         emailListView.itemsProperty().bind(client.inboxProperty());
         bindMailToView(client.selectedEmail);
@@ -72,27 +68,27 @@ public class ClientController {
 
     @FXML
     private void showSent() {
+        //TODO: fetch all sent emails and show them in the listView
         client.selectedEmail = new Email();
         if(client.sentProperty().size() > 0) client.selectedEmail = client.sentProperty().get(0);
-        //TODO: fetch all sent emails and show them in the listView
         emailListView.itemsProperty().bind(client.sentProperty());
         bindMailToView(client.selectedEmail);
     }
 
     @FXML
     private void showDrafts() {
+        //TODO: fetch all drafts mails and show them in the listView
         client.selectedEmail = new Email();
         if(client.draftsProperty().size() > 0) client.selectedEmail = client.draftsProperty().get(0);
-        //TODO: fetch all drafts mails and show them in the listView
         emailListView.itemsProperty().bind(client.draftsProperty());
         bindMailToView(client.selectedEmail);
     }
 
     @FXML
     private void showTrash() {
+        //TODO: fetch all trashed mails and show them in the listView
         client.selectedEmail = new Email();
         if(client.trashProperty().size() > 0) client.selectedEmail = client.trashProperty().get(0);
-        //TODO: fetch all trashed mails and show them in the listView
         emailListView.itemsProperty().bind(client.trashProperty());
         bindMailToView(client.selectedEmail);
     }
@@ -209,8 +205,26 @@ public class ClientController {
 
     }
 
+    private void updateEmailJSon() {
+        if( exec != null )
+            System.out.println("LANCIO ERRORE");
+        exec = Executors.newScheduledThreadPool(1);
+        exec.scheduleAtFixedRate (new updateTask(), 1, 5, TimeUnit.SECONDS );
+        System.out.println("sto per salvare...");
+    }
 
+    class updateTask implements Runnable{
+        public updateTask(){}
+        @Override
+        public void run() {
+            client.saveAll();
+            System.out.println("salvataggio!");
+        }
+    }
 
-
+    public void shutdownThread(){
+        System.out.println("addio...");
+        exec.shutdown();
+    }
 
 }
