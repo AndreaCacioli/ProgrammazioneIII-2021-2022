@@ -1,4 +1,4 @@
-package com.progiii.mailclientserver.server.model;
+package com.progiii.mailclientserver.utils;
 
 public enum Operation
 {

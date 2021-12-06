@@ -7,14 +7,15 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 
-
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.progiii.mailclientserver.server.controller.ServerController">
    <children>
       <HBox prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <ToolBar prefHeight="40.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
               <items>
-                <Button mnemonicParsing="false" text="Log Button" />
+                <Button mnemonicParsing="false" text="Clear" />
+                  <Button mnemonicParsing="false" onAction="#onStopServerClicked" text="Stop Server" />
+                  <Button layoutX="61.0" layoutY="12.0" mnemonicParsing="false" onAction="#onStartServerClicked" text="Start Server" />
               </items>
             </ToolBar>
          </children>
@@ -23,7 +24,7 @@
         <content>
           <AnchorPane>
                <children>
-                  <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
+                  <TextArea fx:id="logTextArea" editable="false" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
                </children>
             </AnchorPane>
         </content>

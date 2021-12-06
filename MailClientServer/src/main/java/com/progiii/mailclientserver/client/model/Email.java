@@ -3,6 +3,7 @@ package com.progiii.mailclientserver.client.model;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
@@ -19,6 +20,10 @@ public class Email {
 
     public String getSender() {
         return sender.get();
+    }
+
+    public void setSender(String sender) {
+        this.sender.set(sender);
     }
 
     public StringProperty senderProperty() {
@@ -75,8 +80,9 @@ public class Email {
     @Override
     public String toString() {
         DateTimeFormatter ft = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-        return "From: " + getSender() + ":\n" +
-                getSubject() + '\n' +
+        return "From: " + getSender() + "\n" +
+                "To: " + getReceiver() + "\n" +
+                "Subject: " + getSubject() + '\n' +
                 ft.format(this.dateTime);
     }
 

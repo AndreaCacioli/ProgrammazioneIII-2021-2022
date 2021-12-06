@@ -8,6 +8,9 @@ import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.time.format.DateTimeFormatter;
 
 import org.json.simple.JSONArray;
@@ -15,7 +18,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-public class Client {
+public class Client
+{
     private SimpleStringProperty address;
     private SimpleListProperty<Email> inbox;
     private SimpleListProperty<Email> drafts;
@@ -29,6 +33,10 @@ public class Client {
 
     public SimpleStringProperty addressProperty() {
         return address;
+    }
+
+    public String getAddress() {
+        return address.get();
     }
 
     public SimpleListProperty<Email> inboxProperty() {
@@ -125,4 +133,5 @@ public class Client {
             i++;
         }
     }
+
 }

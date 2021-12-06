@@ -2,6 +2,8 @@ package com.progiii.mailclientserver.client.controller;
 
 import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
+import com.progiii.mailclientserver.utils.Action;
+import com.progiii.mailclientserver.utils.Operation;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -10,6 +12,10 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
+
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 
 
 public class NewMsgController {
@@ -41,8 +47,14 @@ public class NewMsgController {
     }
 
     @FXML
-    public void onSentButtonClicked(ActionEvent event) {
-
+    public void onSendButtonClicked(ActionEvent event) {
+        try
+        {
+            Socket socket = new Socket(InetAddress.getLocalHost(),6969);
+            ObjectOutputStream stream = new ObjectOutputStream(socket.getOutputStream());
+            stream.writeObject(new Action(client , client.newEmail.getReceiver(), Operation.SEND_EMAIL));
+            stream.flush();
+        }catch (Exception ex) {ex.printStackTrace();}
     }
 
     @FXML

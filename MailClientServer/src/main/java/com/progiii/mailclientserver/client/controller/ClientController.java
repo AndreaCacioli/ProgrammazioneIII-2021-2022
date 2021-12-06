@@ -54,9 +54,9 @@ public class ClientController {
     public Label getAccountLabel() {return accountLabel;}
 
 
+    //Eliminare?
     @FXML
     public void initialize() {
-
         if (this.client != null)
             throw new IllegalStateException("Model can only be initialized once");
     }
@@ -151,6 +151,7 @@ public class ClientController {
     {
         try{
             client.newEmail = new Email();
+            client.newEmail.setSender(client.addressProperty().get());
             newMessageStage.show();
         }catch (Exception e) {e.printStackTrace();}
 

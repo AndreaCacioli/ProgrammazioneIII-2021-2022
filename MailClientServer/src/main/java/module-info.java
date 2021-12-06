@@ -10,6 +10,8 @@ module com.progiii.mailclientserver {
     opens com.progiii.mailclientserver.client.view to javafx.fxml;
     exports com.progiii.mailclientserver.client.controller;
     opens com.progiii.mailclientserver.client.controller to javafx.fxml;
+    exports com.progiii.mailclientserver.server.controller;
+    opens com.progiii.mailclientserver.server.controller to javafx.fxml;
     exports com.progiii.mailclientserver.server.view;
     opens com.progiii.mailclientserver.server.view to javafx.fxml;
 }
