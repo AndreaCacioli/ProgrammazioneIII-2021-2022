@@ -17,7 +17,8 @@ public class ClientView extends Application {
     @Override
     public void start(Stage stage) throws IOException {
 
-        Client client = new Client();
+        System.out.println(getParameters().getRaw().get(0));
+        Client client = new Client(getParameters().getRaw().get(0));
 
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ClientView.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1000, 550);
@@ -55,7 +56,6 @@ public class ClientView extends Application {
         //Binding elemnts that do not change during the life of the app
         controller.getAvatarView().imageProperty().bind(client.imageProperty());
         controller.getAccountLabel().textProperty().bind(client.addressProperty());
-
     }
 
     public static void main(String[] args) {

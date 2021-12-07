@@ -18,11 +18,7 @@ public class ServerView extends Application {
         ServerController controller = fxmlLoader.getController();
 
         stage.setOnCloseRequest((event) -> {
-            try {
-                controller.stopServer();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            controller.stopServer();
         });
 
         stage.setTitle("Server");

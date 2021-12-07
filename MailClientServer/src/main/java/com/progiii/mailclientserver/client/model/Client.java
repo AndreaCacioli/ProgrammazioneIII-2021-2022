@@ -1,6 +1,7 @@
 package com.progiii.mailclientserver.client.model;
 
 import com.progiii.mailclientserver.utils.GravatarRequests;
+import javafx.application.Application;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -58,6 +59,7 @@ public class Client
     public Email selectedEmail;
     public Email newEmail;
 
+
     public Client() {
         address = new SimpleStringProperty();
         //address.setValue(Email.getRandomAddress());
@@ -73,6 +75,18 @@ public class Client
         EmailState[] emailStates = {EmailState.RECEIVED, EmailState.SENT, EmailState.DRAFTED, EmailState.TRASHED};
         for (int i = 0; i < names.length; i++)
             readFromJSon("./src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json", simpleListProperties[i], emailStates[i]);
+
+    }
+
+    public Client(String address)
+    {
+        this.inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
+        this.sent = new SimpleListProperty<>(FXCollections.observableArrayList());
+        this.trash = new SimpleListProperty<>(FXCollections.observableArrayList());
+        this.drafts = new SimpleListProperty<>(FXCollections.observableArrayList());
+        image = new SimpleObjectProperty<Image>(GravatarRequests.getProfilePicture(address));
+
+        this.address = new SimpleStringProperty(address);
 
     }
 

@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -59,34 +61,6 @@ public class ServerController {
         server.logProperty().setValue("");
     }
 
-    class ServerTask implements Runnable {
-        Socket incoming;
-
-        public ServerTask(Socket incoming) {
-            this.incoming = incoming;
-        }
-
-        @Override
-        public void run() {
-            try {
-                ObjectInputStream inStream = new ObjectInputStream(incoming.getInputStream());
-                Action incomingRequest = (Action) inStream.readObject();
-                String subject = (String) inStream.readObject();
-                String body = (String) inStream.readObject();
-                //LocalDateTime date = (LocalDateTime) inStream.readObject();
-                Email email = new Email(incomingRequest.getSender(), incomingRequest.getReceiver(), subject, body, EmailState.SENT);
-                for (Client client : server.getClients()) {
-                    System.out.println(client);
-                    if (client.getAddress() == email.getReceiver())
-                        client.inboxProperty().add(email);
-                }
-                server.add(incomingRequest);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-
     private void addClientFromJSon(String JSonFile) {
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader(JSonFile)) {
@@ -123,17 +97,62 @@ public class ServerController {
                     ServerTask st = new ServerTask(incomingRequestSocket);
                     executorService.execute(st);
                     System.out.println("ESEGUITO...");
-                } catch (Exception ex) {
+                } catch (SocketException socketException) {
+                    System.out.println("Socket Closing");
+                }catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
+            System.out.println("Thread closing");
         }).start();
     }
 
-    public void stopServer() throws IOException {
+    public void stopServer() {
         server.setRunning(false);
         executorService.shutdown();
-        serverSocket.close();
+        try {
+            serverSocket.close();
+        } catch (IOException ioException) {
+            System.out.println("Server Closing, aborting wait");
+        }
         System.out.println("Server shutting down...");
+    }
+
+    class ServerTask implements Runnable {
+        Socket incoming;
+
+        public ServerTask(Socket incoming) {
+            this.incoming = incoming;
+        }
+
+        @Override
+        public void run() {
+            try {
+                ObjectInputStream inStream = new ObjectInputStream(incoming.getInputStream());
+                Action incomingRequest = (Action) inStream.readObject();
+                String subject = (String) inStream.readObject();
+                String body = (String) inStream.readObject();
+                LocalDateTime date = (LocalDateTime) inStream.readObject();
+                Email sentEmail = new Email(incomingRequest.getSender().strip(), incomingRequest.getReceiver().strip(), subject, body, EmailState.SENT, date);
+                Email inboxEmail = new Email(incomingRequest.getSender().strip(), incomingRequest.getReceiver().strip(), subject, body, EmailState.RECEIVED, date);
+                Client sender = null;
+                Client receiver = null;
+                ArrayList<Client> clients = server.getClients();
+                int i = 0;
+                while((sender == null || receiver == null) && i < clients.size())
+                {
+                    if(clients.get(i).getAddress().equals(sentEmail.getSender())) sender = clients.get(i);
+                    if(clients.get(i).getAddress().equals(sentEmail.getReceiver())) receiver = clients.get(i);
+                    i++;
+                }
+                try{
+                    sender.sentProperty().add(sentEmail);
+                    receiver.inboxProperty().add(inboxEmail);
+                }catch (Exception ex) {System.out.println("sender or receiver not found");}
+                server.add(incomingRequest);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 }

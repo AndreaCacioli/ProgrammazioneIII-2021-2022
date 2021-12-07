@@ -209,7 +209,7 @@ public class ClientController {
         if( exec != null )
             System.out.println("LANCIO ERRORE");
         exec = Executors.newScheduledThreadPool(1);
-        exec.scheduleAtFixedRate (new updateTask(), 1, 5, TimeUnit.SECONDS );
+        exec.scheduleAtFixedRate (new updateTask(), 1, 2, TimeUnit.MINUTES);
         System.out.println("sto per salvare...");
     }
 

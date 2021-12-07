@@ -39,6 +39,12 @@ public class Server {
 
     public Server() {
         clients = new ArrayList<Client>();
+
+
+        //TODO prendere i dati dei client da file
+        clients.add(new Client("Gianni_gamer123@libero.it"));
+        clients.add(new Client("treMorten@libero.it"));
+
         actions = new ArrayList<Action>();
         log = new SimpleStringProperty();
     }

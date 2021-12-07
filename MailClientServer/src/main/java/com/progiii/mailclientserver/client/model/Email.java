@@ -68,10 +68,19 @@ public class Email {
         dateTime = LocalDateTime.now();
     }
 
+    public Email(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime) {
+        this.sender = new SimpleStringProperty(sender);
+        this.receiver = new SimpleStringProperty(receiver);
+        this.subject = new SimpleStringProperty(subject);
+        this.body = new SimpleStringProperty(body);
+        this.state = state;
+        this.dateTime = dateTime;
+    }
+
     public Email() {
-        this.sender = new SimpleStringProperty(" ");
-        this.receiver = new SimpleStringProperty(" ");
-        this.subject = new SimpleStringProperty(" ");
+        this.sender = new SimpleStringProperty("");
+        this.receiver = new SimpleStringProperty("");
+        this.subject = new SimpleStringProperty("");
         this.body = new SimpleStringProperty("");
         this.state = EmailState.DRAFTED;
         dateTime = LocalDateTime.now();
