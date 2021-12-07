@@ -1,7 +1,6 @@
 package com.progiii.mailclientserver.server.view;
 
 import com.progiii.mailclientserver.server.controller.ServerController;
-import com.progiii.mailclientserver.server.model.Server;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -17,9 +16,7 @@ public class ServerView extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 600, 480);
         ServerController controller = fxmlLoader.getController();
 
-        stage.setOnCloseRequest((event) -> {
-            controller.stopServer();
-        });
+        stage.setOnCloseRequest((event) -> controller.stopServer());
 
         stage.setTitle("Server");
         stage.setScene(scene);

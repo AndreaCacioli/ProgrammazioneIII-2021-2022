@@ -3,8 +3,6 @@ package com.progiii.mailclientserver.client.model;
 import com.progiii.mailclientserver.utils.SerializableEmail;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
@@ -17,7 +15,7 @@ public class Email {
 
 
     private EmailState state;
-    private LocalDateTime dateTime;
+    private final LocalDateTime dateTime;
 
     public String getSender() {
         return sender.get();

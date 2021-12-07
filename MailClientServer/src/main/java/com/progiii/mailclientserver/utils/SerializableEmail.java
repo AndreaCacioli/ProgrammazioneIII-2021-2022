@@ -17,25 +17,6 @@ public class SerializableEmail implements Serializable
     private EmailState state;
     private LocalDateTime dateTime;
 
-    public SerializableEmail(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.subject = subject;
-        this.body = body;
-        this.state = state;
-        this.dateTime = dateTime;
-    }
-
-    public SerializableEmail(Email email)
-    {
-        this.sender = email.getSender();
-        this.receiver = email.getReceiver();
-        this.subject = email.getSubject();
-        this.body = email.getBody();
-        this.dateTime = email.getDateTime();
-        this.state = email.getState();
-    }
-
     public String getSubject() {
         return subject;
     }
@@ -63,4 +44,24 @@ public class SerializableEmail implements Serializable
     public LocalDateTime getDate() {
         return dateTime;
     }
+
+    public SerializableEmail(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.subject = subject;
+        this.body = body;
+        this.state = state;
+        this.dateTime = dateTime;
+    }
+
+    public SerializableEmail(Email email)
+    {
+        this.sender = email.getSender();
+        this.receiver = email.getReceiver();
+        this.subject = email.getSubject();
+        this.body = email.getBody();
+        this.state = email.getState();
+        this.dateTime = email.getDateTime();
+    }
+
 }

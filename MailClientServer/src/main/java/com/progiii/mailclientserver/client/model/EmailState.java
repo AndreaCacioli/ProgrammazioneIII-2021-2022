@@ -2,8 +2,9 @@ package com.progiii.mailclientserver.client.model;
 
 public enum EmailState
 {
-    DRAFTED,
+    RECEIVED,
     SENT,
+    DRAFTED,
     TRASHED,
-    RECEIVED
+
 }

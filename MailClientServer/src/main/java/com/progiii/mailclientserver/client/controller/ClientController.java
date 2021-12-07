@@ -44,18 +44,31 @@ public class ClientController {
     private Label accountLabel;
 
 
-
     Client client;
     Stage newMessageStage;
     private ScheduledExecutorService exec;
 
-    public void setStage(Stage newMessageStage) {this.newMessageStage = newMessageStage;}
+    public void setStage(Stage newMessageStage) {
+        this.newMessageStage = newMessageStage;
+    }
+
     @SuppressWarnings("all")
-    public Client getClient(){return client;}
+    public Client getClient() {
+        return client;
+    }
+
     @SuppressWarnings("all")
-    public void setClient(Client client) {this.client = client;}
-    public ImageView getAvatarView() {return avatarView;}
-    public Label getAccountLabel() {return accountLabel;}
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
+    public ImageView getAvatarView() {
+        return avatarView;
+    }
+
+    public Label getAccountLabel() {
+        return accountLabel;
+    }
 
 
     //Eliminare?
@@ -70,7 +83,7 @@ public class ClientController {
     private void showInbox() {
         //TODO: fetch all mails and show them in the listView
         client.selectedEmail = new Email();
-        if(client.inboxProperty().size() > 0) client.selectedEmail = client.inboxProperty().get(0);
+        if (client.inboxProperty().size() > 0) client.selectedEmail = client.inboxProperty().get(0);
         emailListView.itemsProperty().bind(client.inboxProperty());
         bindMailToView(client.selectedEmail);
     }
@@ -79,7 +92,7 @@ public class ClientController {
     private void showSent() {
         //TODO: fetch all sent emails and show them in the listView
         client.selectedEmail = new Email();
-        if(client.sentProperty().size() > 0) client.selectedEmail = client.sentProperty().get(0);
+        if (client.sentProperty().size() > 0) client.selectedEmail = client.sentProperty().get(0);
         emailListView.itemsProperty().bind(client.sentProperty());
         bindMailToView(client.selectedEmail);
     }
@@ -88,7 +101,7 @@ public class ClientController {
     private void showDrafts() {
         //TODO: fetch all drafts mails and show them in the listView
         client.selectedEmail = new Email();
-        if(client.draftsProperty().size() > 0) client.selectedEmail = client.draftsProperty().get(0);
+        if (client.draftsProperty().size() > 0) client.selectedEmail = client.draftsProperty().get(0);
         emailListView.itemsProperty().bind(client.draftsProperty());
         bindMailToView(client.selectedEmail);
     }
@@ -97,34 +110,39 @@ public class ClientController {
     private void showTrash() {
         //TODO: fetch all trashed mails and show them in the listView
         client.selectedEmail = new Email();
-        if(client.trashProperty().size() > 0) client.selectedEmail = client.trashProperty().get(0);
+        if (client.trashProperty().size() > 0) client.selectedEmail = client.trashProperty().get(0);
         emailListView.itemsProperty().bind(client.trashProperty());
         bindMailToView(client.selectedEmail);
     }
 
     @FXML
     private void onListViewClick(MouseEvent event) {
+        if (emailListView.getSelectionModel().getSelectedItems().size() > 0) {
+            Email email = emailListView.getSelectionModel().getSelectedItems().get(0);
+            client.selectedEmail = email;
+            bindMailToView(email);
 
-        Email email = emailListView.getSelectionModel().getSelectedItems().get(0);
-        client.selectedEmail = email;
-        bindMailToView(email);
-
-        if (event.getClickCount() == 2)
-        {
-            if(client.selectedEmail.getState() == EmailState.DRAFTED)
-            {
-                client.newEmail = client.selectedEmail;
-                try{
-                    newMessageStage.show();
-                }catch (Exception e) {e.printStackTrace();}
+            if (event.getClickCount() == 2) {
+                if (client.selectedEmail.getState() == EmailState.DRAFTED) {
+                    client.newEmail = client.selectedEmail;
+                    try {
+                        newMessageStage.show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
-
     }
 
     @FXML
     private void deleteSelectedEmail() {
         if (client.selectedEmail != null) {
+            try {
+                client.sendActionToServer(Operation.DELETE_EMAIL);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             switch (client.selectedEmail.getState()) {
                 case DRAFTED -> {
                     int index = sendSelectedEmailToTrash(client.draftsProperty());
@@ -152,13 +170,14 @@ public class ClientController {
     }
 
     @FXML
-    private void onNewMailClicked()
-    {
-        try{
+    private void onNewMailClicked() {
+        try {
             client.newEmail = new Email();
             client.newEmail.setSender(client.addressProperty().get());
             newMessageStage.show();
-        }catch (Exception e) {e.printStackTrace();}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -169,12 +188,10 @@ public class ClientController {
         selectedEmailView.textProperty().bind(email.bodyProperty());
     }
 
-    private int sendSelectedEmailToTrash(ObservableList<Email> list)
-    {
+    private int sendSelectedEmailToTrash(ObservableList<Email> list) {
         int ret = list.indexOf(client.selectedEmail);
 
-        if(client.selectedEmail.getState() != EmailState.TRASHED)
-        {
+        if (client.selectedEmail.getState() != EmailState.TRASHED) {
             client.selectedEmail.setState(EmailState.TRASHED);
             client.trashProperty().add(client.selectedEmail);
         }
@@ -184,18 +201,15 @@ public class ClientController {
         return ret;
     }
 
-    private void showNextEmail(int indexOfEmailToBeShown)
-    {
-        if(indexOfEmailToBeShown == 0 &&  emailListView.getItems().size() == 0) return;
+    private void showNextEmail(int indexOfEmailToBeShown) {
+        if (indexOfEmailToBeShown == 0 && emailListView.getItems().size() == 0) return;
 
-        if(indexOfEmailToBeShown == 0)
-        {
+        if (indexOfEmailToBeShown == 0) {
             emailListView.getSelectionModel().select(indexOfEmailToBeShown);
             client.selectedEmail = emailListView.getItems().get(indexOfEmailToBeShown);
             bindMailToView(client.selectedEmail);
         }
-        if (indexOfEmailToBeShown > 0 && indexOfEmailToBeShown - 1 < emailListView.getItems().size())
-        {
+        if (indexOfEmailToBeShown > 0 && indexOfEmailToBeShown - 1 < emailListView.getItems().size()) {
             emailListView.getSelectionModel().select(indexOfEmailToBeShown - 1);
             client.selectedEmail = emailListView.getItems().get(indexOfEmailToBeShown - 1);
             bindMailToView(client.selectedEmail);
@@ -215,48 +229,42 @@ public class ClientController {
     }
 
     private void startPeriodicBackup() {
-        if( exec != null ) return;
+        if (exec != null) return;
         exec = Executors.newScheduledThreadPool(1);
-        exec.scheduleAtFixedRate (new backupTask(), 1, 5, TimeUnit.MINUTES);
+        exec.scheduleAtFixedRate(new backupTask(), 1, 20, TimeUnit.SECONDS);
     }
 
     public void loadAllFromServer() {
-        try{
+        try {
             Socket socket = new Socket(InetAddress.getLocalHost(), 6969);
-            Action request = new Action(client,null, Operation.GET_ALL_EMAILS);
+            Action request = new Action(client, null, Operation.GET_ALL_EMAILS);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectOutputStream.writeObject(request);
 
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-            SerializableEmail serializableEmail = null;
+            SerializableEmail serializableEmail;
 
-            while ((serializableEmail = (SerializableEmail) objectInputStream.readObject()) != null)
-            {
+            while ((serializableEmail = (SerializableEmail) objectInputStream.readObject()) != null) {
                 Email email = new Email(serializableEmail);
-                switch (email.getState())
-                {
-                    case RECEIVED -> {
-                        client.inboxProperty().add(email);
-                    }
-                    case DRAFTED -> {
-                        client.draftsProperty().add(email);
-                    }
-                    case SENT -> {
-                        client.sentProperty().add(email);
-                    }
-                    case TRASHED -> {
-                        client.trashProperty().add(email);
-                    }
+                switch (email.getState()) {
+                    case RECEIVED -> client.inboxProperty().add(email);
+                    case SENT -> client.sentProperty().add(email);
+                    case DRAFTED -> client.draftsProperty().add(email);
+                    case TRASHED -> client.trashProperty().add(email);
                 }
             }
             socket.close();
-        }catch (EOFException eofException){
+        } catch (EOFException eofException) {
             System.out.println("Finished getting emails");
-        }catch (Exception e) {e.printStackTrace();}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    class backupTask implements Runnable{
-        public backupTask(){}
+    class backupTask implements Runnable {
+        public backupTask() {
+        }
+
         @Override
         public void run() {
             client.saveAll();
@@ -264,7 +272,7 @@ public class ClientController {
         }
     }
 
-    public void shutdownThread(){
+    public void shutdownThread() {
         exec.shutdown();
     }
 

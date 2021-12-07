@@ -31,18 +31,10 @@ public class ClientView extends Application {
         Scene scene1 = new Scene(v, 600, 400);
         Stage newStage = new Stage();
 
-        stage.setOnShown((event) -> {
-            controller.loadAllFromServer();
-        });
-        stage.setOnCloseRequest((event) -> {
-            controller.shutdownThread();
-        });
-        newStage.setOnShown((event) -> {
-            controller1.bindEverything();
-        });
-        newStage.setOnCloseRequest((event) -> {
-            controller1.onSendToDraftsButtonClicked(event);
-        });
+        stage.setOnShown((event) -> controller.loadAllFromServer());
+        stage.setOnCloseRequest((event) -> controller.shutdownThread());
+        newStage.setOnShown((event) -> controller1.bindEverything());
+        newStage.setOnCloseRequest(controller1::onSendToDraftsButtonClicked);
         newStage.setScene(scene1);
         newStage.setTitle("New Email");
 
@@ -61,9 +53,10 @@ public class ClientView extends Application {
 
     public static void main(String[] args) {
         try {
-            Thread.sleep(1000);
-
-        }catch (Exception e){}
+            Thread.sleep(3000);
+        }catch (Exception e){
+            System.out.println("Couldn't sleep");
+        }
         launch(args);
     }
 }

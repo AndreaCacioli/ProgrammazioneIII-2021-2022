@@ -1,7 +1,9 @@
 package com.progiii.mailclientserver.client.model;
 
+import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.GravatarRequests;
-import javafx.application.Application;
+import com.progiii.mailclientserver.utils.Operation;
+import com.progiii.mailclientserver.utils.SerializableEmail;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -11,16 +13,13 @@ import javafx.scene.image.Image;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.time.format.DateTimeFormatter;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
-public class Client
-{
+public class Client {
     private SimpleStringProperty address;
     private SimpleListProperty<Email> inbox;
     private SimpleListProperty<Email> drafts;
@@ -62,13 +61,11 @@ public class Client
 
     public Client() {
         address = new SimpleStringProperty();
-        //address.setValue(Email.getRandomAddress());
-        address.setValue("Gianni_gamer123@libero.it");
-        image = new SimpleObjectProperty<Image>(GravatarRequests.getProfilePicture(address.getValue()));
-        inbox = new SimpleListProperty<Email>(FXCollections.observableArrayList());
-        drafts = new SimpleListProperty<Email>(FXCollections.observableArrayList());
-        sent = new SimpleListProperty<Email>(FXCollections.observableArrayList());
-        trash = new SimpleListProperty<Email>(FXCollections.observableArrayList());
+        image = new SimpleObjectProperty<>(GravatarRequests.getProfilePicture(address.getValue()));
+        inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
+        drafts = new SimpleListProperty<>(FXCollections.observableArrayList());
+        sent = new SimpleListProperty<>(FXCollections.observableArrayList());
+        trash = new SimpleListProperty<>(FXCollections.observableArrayList());
 
         String[] names = {"inbox", "sent", "drafts", "trashed"};
         SimpleListProperty[] simpleListProperties = {inbox, sent, drafts, trash};
@@ -78,16 +75,13 @@ public class Client
 
     }
 
-    public Client(String address)
-    {
+    public Client(String address) {
+        this.address = new SimpleStringProperty(address);
         this.inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.sent = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.trash = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.drafts = new SimpleListProperty<>(FXCollections.observableArrayList());
         image = new SimpleObjectProperty<Image>(GravatarRequests.getProfilePicture(address));
-
-        this.address = new SimpleStringProperty(address);
-
     }
 
     private void readFromJSon(String JSonFile, SimpleListProperty<Email> state, EmailState emailState) {
@@ -131,16 +125,20 @@ public class Client
                 emailList.put("email", emailDetails);
                 array.add(emailList);
             }
-
             try {
                 FileWriter fileWriter = new FileWriter("./src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json");
                 BufferedWriter out = new BufferedWriter(fileWriter);
-                fileWriter.flush();
-                out.write(array.toJSONString());
-                out.flush();
-                fileWriter.flush();
-                out.close(); /*TODO mettere in finally?*/
-                fileWriter.close();
+                try {
+                    fileWriter.flush();
+                    out.write(array.toJSONString());
+                    out.flush();
+                    fileWriter.flush();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    out.close();
+                    fileWriter.close();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -148,4 +146,23 @@ public class Client
         }
     }
 
+    public void sendActionToServer(Operation operation) {
+        try {
+            Socket socket = new Socket(InetAddress.getLocalHost(), 6969);
+            try {
+                ObjectOutputStream stream = new ObjectOutputStream(socket.getOutputStream());
+
+                stream.writeObject(new Action(this, this.newEmail.getReceiver(), operation));
+                SerializableEmail serializableEmail = new SerializableEmail(this.newEmail.getSender(), this.newEmail.getReceiver(), this.newEmail.getSubject(), this.newEmail.getBody(), this.newEmail.getState(), this.newEmail.getDateTime());
+                stream.writeObject(serializableEmail);
+                stream.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                socket.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
