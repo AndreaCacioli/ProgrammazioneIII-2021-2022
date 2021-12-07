@@ -17,7 +17,6 @@ public class ClientView extends Application {
     @Override
     public void start(Stage stage) throws IOException {
 
-        System.out.println(getParameters().getRaw().get(0));
         Client client = new Client(getParameters().getRaw().get(0));
 
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ClientView.fxml"));
@@ -25,17 +24,19 @@ public class ClientView extends Application {
         ClientController controller = fxmlLoader.getController();
         controller.setClient(client);
 
-        stage.setOnCloseRequest((event) -> {
-            controller.shutdownThread();
-        });
-
         FXMLLoader fxmlLoader1 = new FXMLLoader(getClass().getResource("newMsgView.fxml"));
         Parent v = fxmlLoader1.load();
         NewMsgController controller1 = fxmlLoader1.getController();
         controller1.setClient(client);
         Scene scene1 = new Scene(v, 600, 400);
-
         Stage newStage = new Stage();
+
+        stage.setOnShown((event) -> {
+            controller.loadAllFromServer();
+        });
+        stage.setOnCloseRequest((event) -> {
+            controller.shutdownThread();
+        });
         newStage.setOnShown((event) -> {
             controller1.bindEverything();
         });
@@ -59,6 +60,10 @@ public class ClientView extends Application {
     }
 
     public static void main(String[] args) {
+        try {
+            Thread.sleep(1000);
+
+        }catch (Exception e){}
         launch(args);
     }
 }

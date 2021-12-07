@@ -13,6 +13,10 @@ public class Action implements Serializable {
         return sender;
     }
 
+    public Operation getOperation() {
+        return operation;
+    }
+
     public String getReceiver() {
         return receiver;
     }

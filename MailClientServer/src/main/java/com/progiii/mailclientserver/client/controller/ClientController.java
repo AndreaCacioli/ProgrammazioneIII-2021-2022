@@ -3,6 +3,9 @@ package com.progiii.mailclientserver.client.controller;
 import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
 import com.progiii.mailclientserver.client.model.EmailState;
+import com.progiii.mailclientserver.utils.Action;
+import com.progiii.mailclientserver.utils.Operation;
+import com.progiii.mailclientserver.utils.SerializableEmail;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -12,6 +15,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
+
+import java.io.EOFException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +63,7 @@ public class ClientController {
     public void initialize() {
         if (this.client != null)
             throw new IllegalStateException("Client can only be initialized once");
-        updateEmailJSon();
+        startPeriodicBackup();
     }
 
     @FXML
@@ -205,25 +214,57 @@ public class ClientController {
 
     }
 
-    private void updateEmailJSon() {
-        if( exec != null )
-            System.out.println("LANCIO ERRORE");
+    private void startPeriodicBackup() {
+        if( exec != null ) return;
         exec = Executors.newScheduledThreadPool(1);
-        exec.scheduleAtFixedRate (new updateTask(), 1, 2, TimeUnit.MINUTES);
-        System.out.println("sto per salvare...");
+        exec.scheduleAtFixedRate (new backupTask(), 1, 5, TimeUnit.MINUTES);
     }
 
-    class updateTask implements Runnable{
-        public updateTask(){}
+    public void loadAllFromServer() {
+        try{
+            Socket socket = new Socket(InetAddress.getLocalHost(), 6969);
+            Action request = new Action(client,null, Operation.GET_ALL_EMAILS);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectOutputStream.writeObject(request);
+
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+            SerializableEmail serializableEmail = null;
+
+            while ((serializableEmail = (SerializableEmail) objectInputStream.readObject()) != null)
+            {
+                Email email = new Email(serializableEmail);
+                switch (email.getState())
+                {
+                    case RECEIVED -> {
+                        client.inboxProperty().add(email);
+                    }
+                    case DRAFTED -> {
+                        client.draftsProperty().add(email);
+                    }
+                    case SENT -> {
+                        client.sentProperty().add(email);
+                    }
+                    case TRASHED -> {
+                        client.trashProperty().add(email);
+                    }
+                }
+            }
+            socket.close();
+        }catch (EOFException eofException){
+            System.out.println("Finished getting emails");
+        }catch (Exception e) {e.printStackTrace();}
+    }
+
+    class backupTask implements Runnable{
+        public backupTask(){}
         @Override
         public void run() {
             client.saveAll();
-            System.out.println("salvataggio!");
+            System.out.println("Backup!");
         }
     }
 
     public void shutdownThread(){
-        System.out.println("addio...");
         exec.shutdown();
     }
 

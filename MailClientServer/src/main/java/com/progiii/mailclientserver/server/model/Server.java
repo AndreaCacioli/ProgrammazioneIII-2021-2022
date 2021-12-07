@@ -1,6 +1,8 @@
 package com.progiii.mailclientserver.server.model;
 
 import com.progiii.mailclientserver.client.model.Client;
+import com.progiii.mailclientserver.client.model.Email;
+import com.progiii.mailclientserver.client.model.EmailState;
 import com.progiii.mailclientserver.utils.Action;
 import javafx.beans.property.SimpleStringProperty;
 
@@ -20,7 +22,7 @@ public class Server {
         return clients;
     }
 
-    public void addClients(Client c) {
+    public void addClient(Client c) {
         if (c != null)
             clients.add(c);
     }
@@ -42,8 +44,13 @@ public class Server {
 
 
         //TODO prendere i dati dei client da file
-        clients.add(new Client("Gianni_gamer123@libero.it"));
-        clients.add(new Client("treMorten@libero.it"));
+        clients.add(new Client("gianniGamer@libero.it"));
+        clients.add(new Client("treMorten@gmail.com"));
+
+        for(int i = 0; i  < 10 ; i++)
+        {
+            clients.get(0).inboxProperty().add(Email.getRandomEmail(EmailState.RECEIVED));
+        }
 
         actions = new ArrayList<Action>();
         log = new SimpleStringProperty();

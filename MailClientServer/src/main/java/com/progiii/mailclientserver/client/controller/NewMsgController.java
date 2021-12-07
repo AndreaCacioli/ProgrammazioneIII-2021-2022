@@ -4,6 +4,7 @@ import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
 import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.Operation;
+import com.progiii.mailclientserver.utils.SerializableEmail;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -50,13 +51,14 @@ public class NewMsgController {
     public void onSendButtonClicked(ActionEvent event) {
         try
         {
+            //TODO make a method
             Socket socket = new Socket(InetAddress.getLocalHost(),6969);
             ObjectOutputStream stream = new ObjectOutputStream(socket.getOutputStream());
             stream.writeObject(new Action(client , client.newEmail.getReceiver(), Operation.SEND_EMAIL));
-            stream.writeObject(new String(client.newEmail.getSubject()).strip());
-            stream.writeObject(new String(client.newEmail.getBody()).strip());
-            stream.writeObject(client.newEmail.getDateTime());
+            SerializableEmail serializableEmail = new SerializableEmail(client.newEmail.getSender(),client.newEmail.getReceiver(),client.newEmail.getSubject(),client.newEmail.getBody(),client.newEmail.getState(),client.newEmail.getDateTime());
+            stream.writeObject(serializableEmail);
             stream.flush();
+            socket.close();
         }catch (Exception ex) {ex.printStackTrace();}
     }
 

@@ -1,5 +1,6 @@
 package com.progiii.mailclientserver.client.model;
 
+import com.progiii.mailclientserver.utils.SerializableEmail;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -77,6 +78,16 @@ public class Email {
         this.dateTime = dateTime;
     }
 
+    public Email(SerializableEmail email)
+    {
+        this.sender = new SimpleStringProperty(email.getSender());
+        this.receiver = new SimpleStringProperty(email.getReceiver());
+        this.subject = new SimpleStringProperty(email.getSubject());
+        this.body = new SimpleStringProperty(email.getBody());
+        this.state = email.getState();
+        this.dateTime = email.getDateTime();
+    }
+
     public Email() {
         this.sender = new SimpleStringProperty("");
         this.receiver = new SimpleStringProperty("");
@@ -151,4 +162,10 @@ public class Email {
         return saltStr + "@unito.it";
 
     }
+
+    public Email clone()
+    {
+        return new Email(this.getSender(),this.getReceiver(), this.getSubject(),this.getBody(),this.getState(),this.getDateTime());
+    }
+
 }
