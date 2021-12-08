@@ -9,6 +9,12 @@ public class Action implements Serializable {
     String receiver;
     Operation operation;
 
+    public Action(Client sender, String receiverAddress, Operation operation) {
+        this.sender = sender.getAddress();
+        this.receiver = receiverAddress;
+        this.operation = operation;
+    }
+
     public String getSender() {
         return sender;
     }
@@ -21,18 +27,11 @@ public class Action implements Serializable {
         return receiver;
     }
 
-    public Action(Client sender, String receiverAddress, Operation operation) {
-        this.sender = sender.getAddress();
-        this.receiver = receiverAddress;
-        this.operation = operation;
-    }
-
     @Override
     public String toString() {
-        return "Action{" +
-                "sender='" + sender + '\'' +
-                ", receiver='" + receiver + '\'' +
-                ", operation=" + operation +
-                '}';
+        return "Action -> " +
+                "Sender= '" + sender + '\'' +
+                ", Receiver= '" + receiver + '\'' +
+                ", Operation= " + operation;
     }
 }

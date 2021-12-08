@@ -41,7 +41,7 @@ public class Server {
     }
 
     /**
-     * Costructor for server
+     * Server's builder
      */
     //TODO prendere i dati dei client da file
     public Server() {
@@ -55,24 +55,39 @@ public class Server {
         readFromJSonClientsFile("./src/main/resources/com/progiii/mailclientserver/server/data/clients.json");
 
         actions = new ArrayList<>();
-        log = new SimpleStringProperty();
+        log = new SimpleStringProperty("");
+
+        createClientsJSon();
     }
 
+    /**
+     * we use readFromJSonClientsFile to
+     * read the client's JSon
+     * @param JSonFile
+     */
     private void readFromJSonClientsFile(String JSonFile) {
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader(JSonFile)) {
             Object obj = jsonParser.parse(reader);
             JSONArray clientsList = (JSONArray) obj;
             for (int i = 0; i < clientsList.size(); i++) {
-                parseClientObject((JSONObject) clientsList.get(i));
+                parseClientObject((JSONObject) clientsList.get(i), clients.get(i).getAddress());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void parseClientObject(JSONObject client) {
-        JSONArray sectionList = (JSONArray) client.get("gianniGamer@libero.it");
+
+    /**
+     * pareClientObject is a function used by
+     * readFromJSonClientsFile to take every information
+     * of one single client
+     * @param client
+     * @param address
+     */
+    private void parseClientObject(JSONObject client, String address) {
+        JSONArray sectionList = (JSONArray) client.get(address);
         for (int i = 0; i < sectionList.size(); i++) {
             JSONObject sectionObj = (JSONObject) sectionList.get(i);
             JSONArray emailList = (JSONArray) sectionObj.get(names[i]);
@@ -93,19 +108,21 @@ public class Server {
     }
 
     /**
-     * Function that add to Log the Action
+     * Function that add Action and
+     * set the log value of the server
+     *
+     * @param incomingRequest
      */
     public void add(Action incomingRequest) {
         actions.add(incomingRequest);
-        if (actions.size() == 1)
-            log.setValue(incomingRequest.toString() + '\n');
-        else
-            log.setValue(log.getValue() + incomingRequest.toString() + '\n');
-        createClientsJSon();
+        log.setValue(log.getValue() + incomingRequest.toString() + '\n');
     }
 
     /**
-     * Function which we use to add a Client in our List
+     * Function which we used to add a Client
+     * in our clientsList
+     *
+     * @param c
      */
     public void addClient(Client c) {
         if (c != null)
@@ -120,12 +137,14 @@ public class Server {
     }
 
     /**
-     * createClientsJSon() is used to create the JSon which contains the
-     * information the all clients
+     * createClientsJSon() is used to create the JSon file
+     * which contains the information the all clients
      */
     public void createClientsJSon() {
         JSONArray array = new JSONArray();
+
         for (Client client : clients) {
+
             JSONObject clients = new JSONObject();
             JSONArray arrayOfsection = new JSONArray();
             JSONObject section = null;
@@ -135,8 +154,11 @@ public class Server {
             SimpleListProperty<Email>[] lists = new SimpleListProperty[]{client.inboxProperty(), client.sentProperty(), client.draftsProperty(), client.trashProperty()};
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             int i = 0;
+
             for (SimpleListProperty<Email> list : lists) {
+
                 arrayOfEmail = new JSONArray();
+
                 for (Email email : list) {
                     emailDetails = new JSONObject();
                     emailDetails.put("sender", email.getSender());
@@ -152,14 +174,15 @@ public class Server {
                 clients.put(client.getAddress(), arrayOfsection);
                 i++;
             }
+
             array.add(clients);
+
             try {
                 FileWriter fileWriter = new FileWriter("./src/main/resources/com/progiii/mailclientserver/server/data/clients.json");
                 BufferedWriter out = new BufferedWriter(fileWriter);
                 try {
                     fileWriter.flush();
                     out.write(array.toJSONString());
-                    out.write(System.getProperty("line.separator"));
                     out.flush();
                     fileWriter.flush();
                 } catch (Exception e) {

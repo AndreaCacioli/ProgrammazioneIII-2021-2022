@@ -10,6 +10,7 @@ import com.progiii.mailclientserver.utils.SerializableEmail;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -23,8 +24,7 @@ import java.util.concurrent.Executors;
 
 public class ServerController {
 
-    @FXML
-    private TextArea logTextArea;
+
 
     private Server server;
 
@@ -33,34 +33,63 @@ public class ServerController {
     private ExecutorService executorService;
 
     @FXML
+    private TextArea logTextArea;
+
+    @FXML
+    private Button startServerButton;
+
+    @FXML
+    private Button stopServerButton;
+
+    @FXML
     public void initialize() {
         if (this.server != null)
-            throw new IllegalStateException("Server can only be initialized once");
+            throw new IllegalStateException("Server: Server can only be initialized once");
         this.server = new Server();
         logTextArea.textProperty().bind(server.logProperty());
         executorService = Executors.newFixedThreadPool(9);
+        startServerButton.setDisable(true);
         serverLife();
     }
 
+    /**
+     * We use this method to start Server
+     */
     @FXML
     private void onStartServerClicked() {
         server.setRunning(true);
+        startServerButton.setDisable(true);
+        stopServerButton.setDisable(false);
         serverLife();
     }
 
+    /**
+     * We use this method to stop Server
+     */
     @FXML
     private void onStopServerClicked() {
         server.setRunning(false);
+        stopServerButton.setDisable(true);
+        startServerButton.setDisable(false);
         stopServer();
     }
 
+    /**
+     * Function used to clean Server's log
+     */
     @FXML
     private void clearServerLog() {
         server.logProperty().setValue("");
     }
 
+    /**
+     * serverLife is a method that
+     * handle server's life,
+     * we are able to stop or start a server.
+     */
     private void serverLife() {
-        System.out.println("START SERVER...");
+        server.logProperty().setValue(server.logProperty().getValue() + " START SERVER... " + '\n');
+        System.out.println();
         try {
             serverSocket = new ServerSocket(6969);
         } catch (Exception ex) {
@@ -72,17 +101,17 @@ public class ServerController {
             while (server.isRunning()) {
                 try {
                     Socket incomingRequestSocket = serverSocket.accept();
-                    System.out.println("ACCETTATO...");
+                    server.logProperty().setValue(server.logProperty().getValue() + " RICHIESTA ACCETTATA " + '\n');
                     ServerTask st = new ServerTask(incomingRequestSocket);
                     executorService.execute(st);
-                    System.out.println("ESEGUITO...");
+                    server.logProperty().setValue(server.logProperty().getValue() + " ESEGUITA " + '\n');
                 } catch (SocketException socketException) {
-                    System.out.println("Socket Closing");
+                    System.out.println("Server: Socket Closing");
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
-            System.out.println("Thread closing");
+            System.out.println("Server: Thread finish his life");
         }).start();
     }
 
@@ -92,9 +121,9 @@ public class ServerController {
         try {
             serverSocket.close();
         } catch (IOException ioException) {
-            System.out.println("Server Closing, aborting wait");
+            System.out.println("Server: Server Closing, aborting wait");
         }
-        System.out.println("Server shutting down...");
+        server.logProperty().setValue(server.logProperty().getValue() + " SHUTTING DOWN " + '\n');
     }
 
     class ServerTask implements Runnable {

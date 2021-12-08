@@ -14,8 +14,8 @@
             <ToolBar prefHeight="40.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
               <items>
                 <Button mnemonicParsing="false" onAction="#clearServerLog" text="Clear" />
-                  <Button layoutX="61.0" layoutY="12.0" mnemonicParsing="false" onAction="#onStartServerClicked" text="Start Server" />
-                  <Button mnemonicParsing="false" onAction="#onStopServerClicked" text="Stop Server" />
+                  <Button fx:id="startServerButton" layoutX="61.0" layoutY="12.0" mnemonicParsing="false" onAction="#onStartServerClicked" text="Start Server" />
+                  <Button fx:id="stopServerButton" mnemonicParsing="false" onAction="#onStopServerClicked" text="Stop Server" />
               </items>
             </ToolBar>
          </children>

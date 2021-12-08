@@ -231,7 +231,7 @@ public class ClientController {
     private void startPeriodicBackup() {
         if (exec != null) return;
         exec = Executors.newScheduledThreadPool(1);
-        exec.scheduleAtFixedRate(new backupTask(), 1, 20, TimeUnit.SECONDS);
+        exec.scheduleAtFixedRate(new backupTask(), 1, 5, TimeUnit.MINUTES);
     }
 
     public void loadAllFromServer() {
