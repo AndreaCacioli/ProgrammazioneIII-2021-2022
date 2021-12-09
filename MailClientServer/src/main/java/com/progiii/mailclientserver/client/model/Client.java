@@ -126,7 +126,7 @@ public class Client {
                 array.add(emailList);
             }
             try {
-                FileWriter fileWriter = new FileWriter("./src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json");
+                FileWriter fileWriter = new FileWriter("./src/main/resources/com/progiii/mailclientserver/client/data/" + getAddress().split("@")[0] + '/' + names[i] + ".json");
                 BufferedWriter out = new BufferedWriter(fileWriter);
                 try {
                     fileWriter.flush();

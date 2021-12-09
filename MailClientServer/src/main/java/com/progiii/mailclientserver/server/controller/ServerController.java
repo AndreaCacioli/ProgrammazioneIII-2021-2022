@@ -1,6 +1,5 @@
 package com.progiii.mailclientserver.server.controller;
 
-import com.progiii.mailclientserver.client.controller.ClientController;
 import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
 import com.progiii.mailclientserver.client.model.EmailState;
@@ -8,6 +7,7 @@ import com.progiii.mailclientserver.server.model.Server;
 import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.Operation;
 import com.progiii.mailclientserver.utils.SerializableEmail;
+import com.progiii.mailclientserver.utils.ServerResponse;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -53,7 +53,7 @@ public class ServerController {
         logTextArea.textProperty().bind(server.logProperty());
         executorService = Executors.newFixedThreadPool(9);
         startServerButton.setDisable(true);
-        serverLife();
+        startServer();
     }
 
     /**
@@ -64,7 +64,7 @@ public class ServerController {
         server.setRunning(true);
         startServerButton.setDisable(true);
         stopServerButton.setDisable(false);
-        serverLife();
+        startServer();
     }
 
     /**
@@ -86,12 +86,7 @@ public class ServerController {
         server.logProperty().setValue("");
     }
 
-    /**
-     * serverLife is a method that
-     * handle server's life,
-     * we are able to stop or start a server.
-     */
-    private void serverLife() {
+    private void startServer() {
         try {
             serverSocket = new ServerSocket(6969);
         } catch (Exception ex) {
@@ -102,7 +97,6 @@ public class ServerController {
         server.readFromJSonClientsFile();
         scheduledExecutorService = Executors.newScheduledThreadPool(1);
         scheduledExecutorService.scheduleAtFixedRate(new SaveAllTask(), 30, 30, TimeUnit.SECONDS);
-
 
         new Thread(() -> {
             while (server.isRunning()) {
@@ -134,26 +128,31 @@ public class ServerController {
     }
 
     class ServerTask implements Runnable {
-        Socket incoming;
+        Socket socketS;
 
-        public ServerTask(Socket incoming) {
-            this.incoming = incoming;
+        public ServerTask(Socket socketS) {
+            this.socketS = socketS;
         }
 
         @Override
         public void run() {
             try {
-                server.logProperty().setValue(server.logProperty().getValue() + " Incoming Request handeled by thread " + Thread.currentThread().getName() + '\n');
-                ObjectInputStream inStream = new ObjectInputStream(incoming.getInputStream());
-                Action incomingRequest = (Action) inStream.readObject();
-                if (incomingRequest.getOperation() == Operation.SEND_EMAIL) {
-                    sendEmail(incomingRequest, inStream);
-                } else if (incomingRequest.getOperation() == Operation.NEW_DRAFT) {
-                    draftsEmail(incomingRequest, inStream);
-                } else if (incomingRequest.getOperation() == Operation.DELETE_EMAIL) {
-                    deleteEmail(incomingRequest, inStream);
-                } else if (incomingRequest.getOperation() == Operation.GET_ALL_EMAILS) {
-                    sendAllEmails(incomingRequest);
+                server.logProperty().setValue(server.logProperty().getValue() + " Incoming Request handled by thread " + Thread.currentThread().getName() + '\n');
+                ObjectInputStream inStream = new ObjectInputStream(socketS.getInputStream());
+                Action actionRequest = (Action) inStream.readObject();
+                ServerResponse response;
+                if (actionRequest.getOperation() == Operation.SEND_EMAIL) {
+                    response = sendEmail(actionRequest, inStream);
+                    sendResponse(response);
+                } else if (actionRequest.getOperation() == Operation.NEW_DRAFT) {
+                    response = draftsEmail(actionRequest, inStream);
+                    sendResponse(response);
+                } else if (actionRequest.getOperation() == Operation.DELETE_EMAIL) {
+                    response = deleteEmail(actionRequest, inStream);
+                    sendResponse(response);
+                } else if (actionRequest.getOperation() == Operation.GET_ALL_EMAILS) {
+                    response = sendAllEmails(actionRequest);
+                    sendResponse(response);
                 }
                 server.logProperty().setValue(server.logProperty().getValue() + " Request Handled by " + Thread.currentThread().getName() + '\n');
             } catch (Exception ex) {
@@ -162,111 +161,122 @@ public class ServerController {
             }
         }
 
-        void sendEmail(Action incomingRequest, ObjectInputStream inStream) {
-            try {
-                SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
-                Email sentEmail = new Email(incomingRequest.getSender().strip(), incomingRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.SENT, serializableEmail.getDate());
-                Email inboxEmail = sentEmail.clone();
-                inboxEmail.setState(EmailState.RECEIVED);
-                Client sender = null;
-                Client receiver = null;
-                ArrayList<Client> clients = server.getClients();
-                int i = 0;
-                while ((sender == null || receiver == null) && i < clients.size()) {
-                    if (clients.get(i).getAddress().equals(sentEmail.getSender())) sender = clients.get(i);
-                    if (clients.get(i).getAddress().equals(sentEmail.getReceiver())) receiver = clients.get(i);
-                    i++;
-                }
-                try {
-                    if (sender != null)
-                        sender.sentProperty().add(sentEmail);
-                    if (receiver != null)
-                        receiver.inboxProperty().add(inboxEmail);
-                } catch (Exception ex) {
-                    System.out.println("Server: Sender or Receiver not founded");
-                }
-                server.add(incomingRequest);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        void draftsEmail(Action incomingRequest, ObjectInputStream inStream) {
-            try {
-                SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
-                Email deletedEmail = new Email(incomingRequest.getSender().strip(), incomingRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.TRASHED, serializableEmail.getDate());
-                addActionToServer(incomingRequest, deletedEmail);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        void deleteEmail(Action incomingRequest, ObjectInputStream inStream) {
-            try {
-                SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
-                Email draftedEmail = new Email(incomingRequest.getSender().strip(), incomingRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.DRAFTED, serializableEmail.getDate());
-                addActionToServer(incomingRequest, draftedEmail);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        private void addActionToServer(Action incomingRequest, Email deletedEmail) {
+        private Client findClientByAddress(String address) {
             Client sender = null;
             ArrayList<Client> clients = server.getClients();
             int i = 0;
             while ((sender == null) && i < clients.size()) {
-                if (clients.get(i).getAddress().equals(deletedEmail.getSender())) sender = clients.get(i);
+                if (clients.get(i).getAddress().equals(address)) sender = clients.get(i);
                 i++;
             }
-            try {
-                if (sender != null)
-                    sender.sentProperty().add(deletedEmail);
-            } catch (Exception ex) {
-                System.out.println("Server: Sender not founded");
-            }
-            server.add(incomingRequest);
+            return sender;
         }
 
-
-        void sendAllEmails(Action incomingRequest) {
-            ObjectOutputStream objectOutputStream = null;
+        private void sendResponse(ServerResponse response) {
             try {
-                Client requestClient = null;
-                for (Client client : server.getClients()) {
-                    if (incomingRequest.getSender().equals(client.getAddress())) {
-                        requestClient = client;
-                        break;
-                    }
-                }
-                if (requestClient == null) {
-                    System.out.println("Server: Client doesn't exist");
-                    return;
-                }
-                objectOutputStream = new ObjectOutputStream(incoming.getOutputStream());
-                SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
-                allEmails.addAll(requestClient.inboxProperty());
-                allEmails.addAll(requestClient.trashProperty());
-                allEmails.addAll(requestClient.sentProperty());
-                allEmails.addAll(requestClient.draftsProperty());
-                for (Email email : allEmails) {
-                    SerializableEmail serializableEmail = new SerializableEmail(email);
-                    objectOutputStream.writeObject(serializableEmail);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socketS.getOutputStream());
+                try {
+                    objectOutputStream.writeObject(response);
                     objectOutputStream.flush();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                } finally {
+                    objectOutputStream.close();
                 }
-                server.add(incomingRequest);
             } catch (Exception ex) {
                 ex.printStackTrace();
-            } finally {
-                try {
-                    incoming.close();
-                    if (objectOutputStream != null) {
-                        objectOutputStream.close();
-                    }
-                } catch (IOException ex) {
-                    System.out.println("Server: Error in closing ServerSocket/Output Stream");
-                }
             }
+
+        }
+
+        ServerResponse sendEmail(Action actionRequest, ObjectInputStream inStream) {
+            try {
+                SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
+                Email sentEmail = new Email(actionRequest.getSender().strip(), actionRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.SENT, serializableEmail.getDate());
+                Email inboxEmail = sentEmail.clone();
+                inboxEmail.setState(EmailState.RECEIVED);
+                Client sender = findClientByAddress(actionRequest.getSender());
+                Client receiver = findClientByAddress(actionRequest.getReceiver());
+                if (receiver != null) {
+                    server.add(actionRequest);
+                    sender.sentProperty().add(sentEmail);
+                    receiver.inboxProperty().add(inboxEmail);
+                    return ServerResponse.ACTION_COMPLETED;
+                } else {
+                    return ServerResponse.RECEIVER_NOT_FOUND;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return ServerResponse.UNKNOWN_ERROR;
+            }
+        }
+
+        ServerResponse draftsEmail(Action actionRequest, ObjectInputStream inStream) {
+            try {
+                SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
+                Email draftedEmail = new Email(actionRequest.getSender().strip(), actionRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.DRAFTED, serializableEmail.getDate());
+                Client sender = findClientByAddress(actionRequest.getSender());
+                sender.trashProperty().add(draftedEmail);
+                return ServerResponse.ACTION_COMPLETED;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return ServerResponse.UNKNOWN_ERROR;
+            }
+        }
+
+        ServerResponse deleteEmail(Action actionRequest, ObjectInputStream inStream) {
+            try {
+                SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
+                Email deletedEmail = new Email(actionRequest.getSender().strip(), actionRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.TRASHED, serializableEmail.getDate());
+                Client sender = findClientByAddress(actionRequest.getSender());
+                sender.trashProperty().add(deletedEmail);
+                return ServerResponse.ACTION_COMPLETED;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return ServerResponse.UNKNOWN_ERROR;
+            }
+        }
+
+        ServerResponse sendAllEmails(Action actionRequest) {
+            try {
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socketS.getOutputStream());
+                try {
+                    Client requestClient = findClientByAddress(actionRequest.getSender());
+
+
+                    if(requestClient == null) //only one time this could happen
+                    {
+                        server.addClient(new Client(actionRequest.getSender()));
+                        return ServerResponse.CLIENT_NOT_FOUND;
+                    }
+
+                    //get all emails of given client
+                    SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
+                    allEmails.addAll(requestClient.inboxProperty());
+                    allEmails.addAll(requestClient.trashProperty());
+                    allEmails.addAll(requestClient.sentProperty());
+                    allEmails.addAll(requestClient.draftsProperty());
+
+                    for (Email email : allEmails) {
+                        SerializableEmail serializableEmail = new SerializableEmail(email);
+                        objectOutputStream.writeObject(serializableEmail);
+                        objectOutputStream.flush();
+                    }
+                    server.add(actionRequest);
+
+                    return ServerResponse.ACTION_COMPLETED;
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    return ServerResponse.UNKNOWN_ERROR;
+                } finally {
+                    objectOutputStream.close();
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return ServerResponse.UNKNOWN_ERROR;
+            }
+
         }
     }
 
@@ -277,7 +287,6 @@ public class ServerController {
         @Override
         public void run() {
             server.createClientsJSon();
-
         }
     }
 

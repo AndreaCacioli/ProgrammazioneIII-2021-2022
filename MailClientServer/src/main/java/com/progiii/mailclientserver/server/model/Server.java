@@ -10,13 +10,12 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 
 public class Server {
@@ -103,10 +102,10 @@ public class Server {
                 Email email = new Email(sender, receiver,subject,body,emailState, LocalDateTime.parse(dateTime, formatter));
                 switch (emailState)
                 {
-                    case RECEIVED -> {clientObject.inboxProperty().add(email);}
-                    case SENT -> {clientObject.sentProperty().add(email);}
-                    case DRAFTED -> {clientObject.draftsProperty().add(email);}
-                    case TRASHED -> {clientObject.trashProperty().add(email);}
+                    case RECEIVED -> clientObject.inboxProperty().add(email);
+                    case SENT -> clientObject.sentProperty().add(email);
+                    case DRAFTED -> clientObject.draftsProperty().add(email);
+                    case TRASHED -> clientObject.trashProperty().add(email);
                 }
             }
         }
@@ -193,18 +192,15 @@ public class Server {
             array.add(clients);
 
             try {
-                FileWriter fileWriter = new FileWriter("./src/main/resources/com/progiii/mailclientserver/server/data/clients.json");
-                BufferedWriter out = new BufferedWriter(fileWriter);
+                File file = new File("./src/main/resources/com/progiii/mailclientserver/server/data/clients.json");
+                PrintWriter out = new PrintWriter(file);
                 try {
-                    fileWriter.flush();
                     out.write(array.toJSONString());
                     out.flush();
-                    fileWriter.flush();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
                     out.close();
-                    fileWriter.close();
                 }
             } catch (Exception e) {
                 e.printStackTrace();

@@ -6,6 +6,7 @@ import com.progiii.mailclientserver.client.model.EmailState;
 import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.Operation;
 import com.progiii.mailclientserver.utils.SerializableEmail;
+import com.progiii.mailclientserver.utils.ServerResponse;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -245,8 +246,14 @@ public class ClientController {
 
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
             SerializableEmail serializableEmail;
-
-            while ((serializableEmail = (SerializableEmail) objectInputStream.readObject()) != null) {
+            Object object;
+            while ((object = objectInputStream.readObject()) != null) {
+                if (object instanceof ServerResponse)
+                {
+                    System.out.println("Got a response");
+                    return;
+                }
+                serializableEmail = (SerializableEmail) object;
                 Email email = new Email(serializableEmail);
                 switch (email.getState()) {
                     case RECEIVED -> client.inboxProperty().add(email);
