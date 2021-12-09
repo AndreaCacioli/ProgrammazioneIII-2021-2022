@@ -13,6 +13,7 @@ import javafx.scene.image.Image;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
@@ -60,23 +61,23 @@ public class Client {
     public Email selectedEmail;
     public Email newEmail;
 
+    /* NON CI SERVE PIU'
+        public Client() {
+            address = new SimpleStringProperty();
+            image = new SimpleObjectProperty<>(GravatarRequests.getProfilePicture(address.getValue()));
+            inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
+            drafts = new SimpleListProperty<>(FXCollections.observableArrayList());
+            sent = new SimpleListProperty<>(FXCollections.observableArrayList());
+            trash = new SimpleListProperty<>(FXCollections.observableArrayList());
 
-    public Client() {
-        address = new SimpleStringProperty();
-        image = new SimpleObjectProperty<>(GravatarRequests.getProfilePicture(address.getValue()));
-        inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
-        drafts = new SimpleListProperty<>(FXCollections.observableArrayList());
-        sent = new SimpleListProperty<>(FXCollections.observableArrayList());
-        trash = new SimpleListProperty<>(FXCollections.observableArrayList());
+            String[] names = {"inbox", "sent", "drafts", "trashed"};
+            SimpleListProperty[] simpleListProperties = {inbox, sent, drafts, trash};
+            EmailState[] emailStates = {EmailState.RECEIVED, EmailState.SENT, EmailState.DRAFTED, EmailState.TRASHED};
+            for (int i = 0; i < names.length; i++)
+                readFromJSon("./src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json", simpleListProperties[i], emailStates[i]);
 
-        String[] names = {"inbox", "sent", "drafts", "trashed"};
-        SimpleListProperty[] simpleListProperties = {inbox, sent, drafts, trash};
-        EmailState[] emailStates = {EmailState.RECEIVED, EmailState.SENT, EmailState.DRAFTED, EmailState.TRASHED};
-        for (int i = 0; i < names.length; i++)
-            readFromJSon("./src/main/resources/com/progiii/mailclientserver/client/data/" + names[i] + ".json", simpleListProperties[i], emailStates[i]);
-
-    }
-
+        }
+    */
     public Client(String address) {
         this.address = new SimpleStringProperty(address);
         this.inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
@@ -84,6 +85,7 @@ public class Client {
         this.trash = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.drafts = new SimpleListProperty<>(FXCollections.observableArrayList());
         image = new SimpleObjectProperty<Image>(GravatarRequests.getProfilePicture(address));
+
     }
 
     private void readFromJSon(String JSonFile, SimpleListProperty<Email> state, EmailState emailState) {
@@ -142,8 +144,11 @@ public class Client {
                     out.close();
                     fileWriter.close();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (FileAlreadyExistsException fileEx) {
+                System.out.println("Update JSon File");
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
             i++;
         }

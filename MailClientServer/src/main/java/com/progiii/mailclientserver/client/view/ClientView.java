@@ -31,8 +31,8 @@ public class ClientView extends Application {
         Scene scene1 = new Scene(v, 600, 400);
         Stage newStage = new Stage();
 
-        stage.setOnShown((event) -> controller.loadAllFromServer());
-        stage.setOnCloseRequest((event) -> controller.shutdownThread());
+        stage.setOnShown((event) -> controller.openConnectionToServer());
+        stage.setOnCloseRequest((event) -> controller.shutdownPeriodicBackup());
         newStage.setOnShown((event) -> controller1.bindEverything());
         newStage.setOnCloseRequest(controller1::onSendToDraftsButtonClicked);
         newStage.setScene(scene1);
@@ -46,17 +46,10 @@ public class ClientView extends Application {
         scene.getStylesheets().add(Objects.requireNonNull(ClientView.class.getResource("appStyle.css")).toExternalForm());
         stage.show();
 
-        //Binding elemnts that do not change during the life of the app
-        controller.getAvatarView().imageProperty().bind(client.imageProperty());
-        controller.getAccountLabel().textProperty().bind(client.addressProperty());
+        controller.setGravatarBindings();
     }
 
     public static void main(String[] args) {
-        try {
-            Thread.sleep(3000);
-        }catch (Exception e){
-            System.out.println("Couldn't sleep");
-        }
         launch(args);
     }
 }

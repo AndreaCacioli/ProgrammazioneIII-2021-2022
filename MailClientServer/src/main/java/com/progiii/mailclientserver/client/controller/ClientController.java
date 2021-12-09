@@ -9,19 +9,16 @@ import com.progiii.mailclientserver.utils.SerializableEmail;
 import com.progiii.mailclientserver.utils.ServerResponse;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 import java.io.EOFException;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.Socket;
+import java.net.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -31,23 +28,33 @@ public class ClientController {
 
     @FXML
     private ListView<Email> emailListView;
+
     @FXML
     private TextArea selectedEmailView;
+
     @FXML
     private TextField fromTextField;
+
     @FXML
     private TextField toTextField;
+
     @FXML
     private TextField subjectTextField;
+
     @FXML
     private ImageView avatarView;
+
     @FXML
     private Label accountLabel;
 
+    @FXML
+    private Button restartConnButton;
 
-    Client client;
-    Stage newMessageStage;
-    private ScheduledExecutorService exec;
+    private Client client;
+    private Stage newMessageStage;
+    private Socket socket;
+    private ScheduledExecutorService scheduledExServBackup;
+
 
     public void setStage(Stage newMessageStage) {
         this.newMessageStage = newMessageStage;
@@ -60,7 +67,28 @@ public class ClientController {
 
     @SuppressWarnings("all")
     public void setClient(Client client) {
+        if (this.client != null)
+            throw new IllegalStateException("Client can only be initialized once");
         this.client = client;
+    }
+
+    /**
+     * Binding elements that do not change during the life of the app
+     */
+    public void setGravatarBindings(){
+        try {
+            Socket socket = new Socket("www.google.com", 80);
+            if (socket.isConnected()) {
+                this.getAvatarView().imageProperty().bind(client.imageProperty());
+                this.getAccountLabel().textProperty().bind(client.addressProperty());
+                System.out.println("OK Internet Connection");
+            } else System.out.println("NO Internet Connection");
+            socket.close();
+        }
+        catch (Exception ex){
+            System.out.println("---NO Internet Connection---");
+        }
+
     }
 
     public ImageView getAvatarView() {
@@ -71,12 +99,8 @@ public class ClientController {
         return accountLabel;
     }
 
-
-    //Eliminare?
     @FXML
     public void initialize() {
-        if (this.client != null)
-            throw new IllegalStateException("Client can only be initialized once");
         startPeriodicBackup();
     }
 
@@ -119,7 +143,9 @@ public class ClientController {
     @FXML
     private void onListViewClick(MouseEvent event) {
 
-        if (emailListView.getSelectionModel().getSelectedItems().size() <= 0) {return;}
+        if (emailListView.getSelectionModel().getSelectedItems().size() <= 0) {
+            return;
+        }
 
         Email email = emailListView.getSelectionModel().getSelectedItems().get(0);
         client.selectedEmail = email;
@@ -231,15 +257,31 @@ public class ClientController {
 
     }
 
-    private void startPeriodicBackup() {
-        if (exec != null) return;
-        exec = Executors.newScheduledThreadPool(1);
-        exec.scheduleAtFixedRate(new backupTask(), 1, 5, TimeUnit.MINUTES);
+    public void openConnectionToServer() {
+        try {
+            restartConnButton.setDisable(true);
+            socket = new Socket(InetAddress.getLocalHost(), 6969);
+            System.out.println("Connection To Server Successes");
+            loadAllFromServer();
+        } catch (ConnectException connectException) {
+            System.out.println("Connection To Server Failure");
+            restartConnButton.setDisable(false);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
-    public void loadAllFromServer() {
+    private void closeConnectionToServer() {
         try {
-            Socket socket = new Socket(InetAddress.getLocalHost(), 6969);
+            socket.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void loadAllFromServer() {
+        try {
             Action request = new Action(client, null, Operation.GET_ALL_EMAILS);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectOutputStream.writeObject(request);
@@ -248,21 +290,16 @@ public class ClientController {
             SerializableEmail serializableEmail;
             Object object;
             while ((object = objectInputStream.readObject()) != null) {
-                if (object instanceof ServerResponse)
-                {
-                    if(object != ServerResponse.ACTION_COMPLETED)
-                    {
-                        if (object == ServerResponse.CLIENT_NOT_FOUND)
-                        {
+                if (object instanceof ServerResponse) {
+                    if (object != ServerResponse.ACTION_COMPLETED) {
+                        if (object == ServerResponse.CLIENT_NOT_FOUND) {
                             System.out.println("I've been added to the server");
-                        }
-                        else
-                        {
+                        } else {
                             System.out.println("Something went wrong" + object);
                         }
                         return;
                     }
-                   break;
+                    break;
                 }
                 serializableEmail = (SerializableEmail) object;
                 Email email = new Email(serializableEmail);
@@ -273,12 +310,20 @@ public class ClientController {
                     case TRASHED -> client.trashProperty().add(email);
                 }
             }
-            socket.close();
-        } catch (EOFException eofException) {
+
+        } catch (EOFException EOFException) {
             System.out.println("Finished getting emails");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            closeConnectionToServer();
         }
+    }
+
+    private void startPeriodicBackup() {
+        if (scheduledExServBackup != null) return;
+        scheduledExServBackup = Executors.newScheduledThreadPool(1);
+        scheduledExServBackup.scheduleAtFixedRate(new backupTask(), 1, 5, TimeUnit.MINUTES);
     }
 
     class backupTask implements Runnable {
@@ -292,8 +337,8 @@ public class ClientController {
         }
     }
 
-    public void shutdownThread() {
-        exec.shutdown();
+    public void shutdownPeriodicBackup() {
+        scheduledExServBackup.shutdown();
     }
 
 }
