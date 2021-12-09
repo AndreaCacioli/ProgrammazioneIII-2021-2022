@@ -117,22 +117,24 @@ public class ClientController {
 
     @FXML
     private void onListViewClick(MouseEvent event) {
-        if (emailListView.getSelectionModel().getSelectedItems().size() > 0) {
-            Email email = emailListView.getSelectionModel().getSelectedItems().get(0);
-            client.selectedEmail = email;
-            bindMailToView(email);
 
-            if (event.getClickCount() == 2) {
-                if (client.selectedEmail.getState() == EmailState.DRAFTED) {
-                    client.newEmail = client.selectedEmail;
-                    try {
-                        newMessageStage.show();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        if (emailListView.getSelectionModel().getSelectedItems().size() <= 0) {return;}
+
+        Email email = emailListView.getSelectionModel().getSelectedItems().get(0);
+        client.selectedEmail = email;
+        bindMailToView(email);
+
+        if (event.getClickCount() == 2) {
+            if (client.selectedEmail.getState() == EmailState.DRAFTED) {
+                client.newEmail = client.selectedEmail;
+                try {
+                    newMessageStage.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
+
     }
 
     @FXML

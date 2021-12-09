@@ -1,5 +1,6 @@
 package com.progiii.mailclientserver.server.controller;
 
+import com.progiii.mailclientserver.client.controller.ClientController;
 import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
 import com.progiii.mailclientserver.client.model.EmailState;
@@ -21,6 +22,8 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ServerController {
 
@@ -31,6 +34,7 @@ public class ServerController {
     private ServerSocket serverSocket;
 
     private ExecutorService executorService;
+    private ScheduledExecutorService scheduledExecutorService;
 
     @FXML
     private TextArea logTextArea;
@@ -88,23 +92,24 @@ public class ServerController {
      * we are able to stop or start a server.
      */
     private void serverLife() {
-        server.logProperty().setValue(server.logProperty().getValue() + " START SERVER... " + '\n');
-        System.out.println();
         try {
             serverSocket = new ServerSocket(6969);
         } catch (Exception ex) {
             ex.printStackTrace();
             return;
         }
+        server.logProperty().setValue(server.logProperty().getValue() + " START SERVER... " + '\n');
+        server.readFromJSonClientsFile();
+        scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        scheduledExecutorService.scheduleAtFixedRate(new SaveAllTask(), 30, 30, TimeUnit.SECONDS);
+
 
         new Thread(() -> {
             while (server.isRunning()) {
                 try {
                     Socket incomingRequestSocket = serverSocket.accept();
-                    server.logProperty().setValue(server.logProperty().getValue() + " RICHIESTA ACCETTATA " + '\n');
                     ServerTask st = new ServerTask(incomingRequestSocket);
                     executorService.execute(st);
-                    server.logProperty().setValue(server.logProperty().getValue() + " ESEGUITA " + '\n');
                 } catch (SocketException socketException) {
                     System.out.println("Server: Socket Closing");
                 } catch (Exception ex) {
@@ -118,6 +123,8 @@ public class ServerController {
     public void stopServer() {
         server.setRunning(false);
         executorService.shutdown();
+        scheduledExecutorService.shutdown();
+        new Thread(new SaveAllTask()).start();
         try {
             serverSocket.close();
         } catch (IOException ioException) {
@@ -136,6 +143,7 @@ public class ServerController {
         @Override
         public void run() {
             try {
+                server.logProperty().setValue(server.logProperty().getValue() + " Incoming Request handeled by thread " + Thread.currentThread().getName() + '\n');
                 ObjectInputStream inStream = new ObjectInputStream(incoming.getInputStream());
                 Action incomingRequest = (Action) inStream.readObject();
                 if (incomingRequest.getOperation() == Operation.SEND_EMAIL) {
@@ -147,7 +155,9 @@ public class ServerController {
                 } else if (incomingRequest.getOperation() == Operation.GET_ALL_EMAILS) {
                     sendAllEmails(incomingRequest);
                 }
+                server.logProperty().setValue(server.logProperty().getValue() + " Request Handled by " + Thread.currentThread().getName() + '\n');
             } catch (Exception ex) {
+                server.logProperty().setValue(server.logProperty().getValue() + " Error Processing Request " + '\n');
                 ex.printStackTrace();
             }
         }
@@ -259,4 +269,16 @@ public class ServerController {
             }
         }
     }
+
+    class SaveAllTask implements Runnable {
+        public SaveAllTask() {
+        }
+
+        @Override
+        public void run() {
+            server.createClientsJSon();
+
+        }
+    }
+
 }

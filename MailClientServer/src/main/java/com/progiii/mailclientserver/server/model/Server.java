@@ -13,14 +13,17 @@ import org.json.simple.parser.JSONParser;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 public class Server {
     ArrayList<Action> actions;
     ArrayList<Client> clients;
     SimpleStringProperty log;
+    private final String JSONClientsFile = "./src/main/resources/com/progiii/mailclientserver/server/data/clients.json";
     private boolean running = true;
     private String[] names = {"inbox", "sent", "drafts", "trashed"};
 
@@ -46,32 +49,29 @@ public class Server {
     //TODO prendere i dati dei client da file
     public Server() {
         clients = new ArrayList<>();
-        clients.add(new Client("gianniGamer@libero.it"));
-        clients.add(new Client("treMorten@gmail.com"));
-
-        for (int i = 0; i < 10; i++) {
-            clients.get(0).inboxProperty().add(Email.getRandomEmail(EmailState.RECEIVED));
-        }
-        readFromJSonClientsFile("./src/main/resources/com/progiii/mailclientserver/server/data/clients.json");
-
         actions = new ArrayList<>();
         log = new SimpleStringProperty("");
 
-        createClientsJSon();
+        readFromJSonClientsFile();
     }
 
     /**
      * we use readFromJSonClientsFile to
      * read the client's JSon
-     * @param JSonFile
      */
-    private void readFromJSonClientsFile(String JSonFile) {
+     public void readFromJSonClientsFile() {
+        System.out.println("Loading");
         JSONParser jsonParser = new JSONParser();
-        try (FileReader reader = new FileReader(JSonFile)) {
+        try (FileReader reader = new FileReader(JSONClientsFile)) {
             Object obj = jsonParser.parse(reader);
             JSONArray clientsList = (JSONArray) obj;
             for (int i = 0; i < clientsList.size(); i++) {
-                parseClientObject((JSONObject) clientsList.get(i), clients.get(i).getAddress());
+                JSONObject jsonClient = (JSONObject) clientsList.get(i);
+                String clientString = jsonClient.toString();
+                String[] junk = clientString.split("\"");
+                Client client = new Client(junk[1]);
+                clients.add(client);
+                parseClientObject((JSONObject) clientsList.get(i), client);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -83,11 +83,11 @@ public class Server {
      * pareClientObject is a function used by
      * readFromJSonClientsFile to take every information
      * of one single client
-     * @param client
-     * @param address
+     * @param clientJson
+     * @param clientObject
      */
-    private void parseClientObject(JSONObject client, String address) {
-        JSONArray sectionList = (JSONArray) client.get(address);
+    private void parseClientObject(JSONObject clientJson, Client clientObject) {
+        JSONArray sectionList = (JSONArray) clientJson.get(clientObject.getAddress());
         for (int i = 0; i < sectionList.size(); i++) {
             JSONObject sectionObj = (JSONObject) sectionList.get(i);
             JSONArray emailList = (JSONArray) sectionObj.get(names[i]);
@@ -98,13 +98,27 @@ public class Server {
                 String subject = (String) emailObj.get("subject");
                 String body = (String) emailObj.get("body");
                 String dateTime = (String) emailObj.get("dateTime");
-                System.out.println(sender);
-                System.out.println(receiver);
-                System.out.println(subject);
-                System.out.println(body);
-                System.out.println(dateTime);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+                EmailState emailState = stringToEmailState(names[i]);
+                Email email = new Email(sender, receiver,subject,body,emailState, LocalDateTime.parse(dateTime, formatter));
+                switch (emailState)
+                {
+                    case RECEIVED -> {clientObject.inboxProperty().add(email);}
+                    case SENT -> {clientObject.sentProperty().add(email);}
+                    case DRAFTED -> {clientObject.draftsProperty().add(email);}
+                    case TRASHED -> {clientObject.trashProperty().add(email);}
+                }
             }
         }
+    }
+
+    EmailState stringToEmailState(String s)
+    {
+        if(s.compareTo("inbox") == 0){return EmailState.RECEIVED;}
+        if(s.compareTo("sent") == 0){return EmailState.SENT;}
+        if(s.compareTo("drafts") == 0){return EmailState.DRAFTED;}
+        if(s.compareTo("trashed") == 0){return EmailState.TRASHED;}
+        else return null;
     }
 
     /**
@@ -115,6 +129,7 @@ public class Server {
      */
     public void add(Action incomingRequest) {
         actions.add(incomingRequest);
+        //TODO Error on startup
         log.setValue(log.getValue() + incomingRequest.toString() + '\n');
     }
 
@@ -140,7 +155,7 @@ public class Server {
      * createClientsJSon() is used to create the JSon file
      * which contains the information the all clients
      */
-    public void createClientsJSon() {
+    public synchronized void createClientsJSon() {
         JSONArray array = new JSONArray();
 
         for (Client client : clients) {
