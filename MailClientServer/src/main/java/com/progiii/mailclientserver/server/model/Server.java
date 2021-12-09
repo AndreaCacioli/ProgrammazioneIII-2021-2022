@@ -59,8 +59,9 @@ public class Server {
      * read the client's JSon
      */
      public void readFromJSonClientsFile() {
-        System.out.println("Loading");
-        JSONParser jsonParser = new JSONParser();
+         clients = new ArrayList<Client>();
+         System.out.println("Loading");
+         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader(JSONClientsFile)) {
             Object obj = jsonParser.parse(reader);
             JSONArray clientsList = (JSONArray) obj;
@@ -126,9 +127,8 @@ public class Server {
      *
      * @param incomingRequest
      */
-    public void add(Action incomingRequest) {
+    public synchronized void add(Action incomingRequest) {
         actions.add(incomingRequest);
-        //TODO Error on startup
         log.setValue(log.getValue() + incomingRequest.toString() + '\n');
     }
 
@@ -155,6 +155,7 @@ public class Server {
      * which contains the information the all clients
      */
     public synchronized void createClientsJSon() {
+        System.out.println("Server Saving");
         JSONArray array = new JSONArray();
 
         for (Client client : clients) {

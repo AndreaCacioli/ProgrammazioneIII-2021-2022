@@ -13,6 +13,8 @@ import javafx.scene.image.Image;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 
 import org.json.simple.JSONArray;
@@ -126,6 +128,7 @@ public class Client {
                 array.add(emailList);
             }
             try {
+                Files.createDirectory(Path.of("./src/main/resources/com/progiii/mailclientserver/client/data/" + getAddress().split("@")[0]));
                 FileWriter fileWriter = new FileWriter("./src/main/resources/com/progiii/mailclientserver/client/data/" + getAddress().split("@")[0] + '/' + names[i] + ".json");
                 BufferedWriter out = new BufferedWriter(fileWriter);
                 try {

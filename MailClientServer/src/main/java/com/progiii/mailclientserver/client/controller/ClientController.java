@@ -250,8 +250,19 @@ public class ClientController {
             while ((object = objectInputStream.readObject()) != null) {
                 if (object instanceof ServerResponse)
                 {
-                    System.out.println("Got a response");
-                    return;
+                    if(object != ServerResponse.ACTION_COMPLETED)
+                    {
+                        if (object == ServerResponse.CLIENT_NOT_FOUND)
+                        {
+                            System.out.println("I've been added to the server");
+                        }
+                        else
+                        {
+                            System.out.println("Something went wrong" + object);
+                        }
+                        return;
+                    }
+                   break;
                 }
                 serializableEmail = (SerializableEmail) object;
                 Email email = new Email(serializableEmail);

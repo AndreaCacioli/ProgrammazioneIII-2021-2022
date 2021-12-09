@@ -129,26 +129,35 @@ public class ServerController {
 
     class ServerTask implements Runnable {
         Socket socketS;
+        ObjectOutputStream objectOutputStream;
+        ObjectInputStream objectInputStream;
 
         public ServerTask(Socket socketS) {
             this.socketS = socketS;
+            try
+            {
+                objectOutputStream = new ObjectOutputStream(socketS.getOutputStream());
+                objectInputStream = new ObjectInputStream(socketS.getInputStream());
+            }catch (Exception ex) {ex.printStackTrace();}
         }
 
         @Override
         public void run() {
             try {
-                server.logProperty().setValue(server.logProperty().getValue() + " Incoming Request handled by thread " + Thread.currentThread().getName() + '\n');
-                ObjectInputStream inStream = new ObjectInputStream(socketS.getInputStream());
-                Action actionRequest = (Action) inStream.readObject();
+                synchronized (logTextArea)
+                {
+                    server.logProperty().setValue(server.logProperty().getValue() + " Incoming Request handled by thread " + Thread.currentThread().getName() + '\n');
+                }
+                Action actionRequest = (Action) objectInputStream.readObject();
                 ServerResponse response;
                 if (actionRequest.getOperation() == Operation.SEND_EMAIL) {
-                    response = sendEmail(actionRequest, inStream);
+                    response = sendEmail(actionRequest, objectInputStream);
                     sendResponse(response);
                 } else if (actionRequest.getOperation() == Operation.NEW_DRAFT) {
-                    response = draftsEmail(actionRequest, inStream);
+                    response = draftsEmail(actionRequest, objectInputStream);
                     sendResponse(response);
                 } else if (actionRequest.getOperation() == Operation.DELETE_EMAIL) {
-                    response = deleteEmail(actionRequest, inStream);
+                    response = deleteEmail(actionRequest, objectInputStream);
                     sendResponse(response);
                 } else if (actionRequest.getOperation() == Operation.GET_ALL_EMAILS) {
                     response = sendAllEmails(actionRequest);
@@ -159,7 +168,15 @@ public class ServerController {
                 server.logProperty().setValue(server.logProperty().getValue() + " Error Processing Request " + '\n');
                 ex.printStackTrace();
             }
+            finally {
+                try {
+                    objectOutputStream.close();
+                    objectInputStream.close();
+                }catch (Exception ex) {ex.printStackTrace();}
+            }
         }
+
+
 
         private Client findClientByAddress(String address) {
             Client sender = null;
@@ -173,20 +190,12 @@ public class ServerController {
         }
 
         private void sendResponse(ServerResponse response) {
-            try {
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socketS.getOutputStream());
                 try {
                     objectOutputStream.writeObject(response);
                     objectOutputStream.flush();
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                } finally {
-                    objectOutputStream.close();
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
         }
 
         ServerResponse sendEmail(Action actionRequest, ObjectInputStream inStream) {
@@ -238,11 +247,8 @@ public class ServerController {
         }
 
         ServerResponse sendAllEmails(Action actionRequest) {
-            try {
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socketS.getOutputStream());
                 try {
                     Client requestClient = findClientByAddress(actionRequest.getSender());
-
 
                     if(requestClient == null) //only one time this could happen
                     {
@@ -269,14 +275,7 @@ public class ServerController {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     return ServerResponse.UNKNOWN_ERROR;
-                } finally {
-                    objectOutputStream.close();
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                return ServerResponse.UNKNOWN_ERROR;
-            }
-
         }
     }
 
