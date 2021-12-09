@@ -2,7 +2,9 @@ package com.progiii.mailclientserver.client.controller;
 
 import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
+import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.Operation;
+import com.progiii.mailclientserver.utils.SerializableEmail;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -11,6 +13,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 
 
 public class NewMsgController {
@@ -31,7 +37,7 @@ public class NewMsgController {
     private Button draftsNewMsgButton;
 
 
-    Client client;
+    private Client client;
 
     public Client getClient() {
         return client;
@@ -47,6 +53,26 @@ public class NewMsgController {
         textAreaMsg.textProperty().bindBidirectional(client.newEmail.bodyProperty());
     }
 
+    public void sendActionToServer(Operation operation) {
+        try {
+            Socket socket = new Socket(InetAddress.getLocalHost(), 6969);
+            try {
+                ObjectOutputStream stream = new ObjectOutputStream(socket.getOutputStream());
+
+                stream.writeObject(new Action(client, client.newEmail.getReceiver(), operation));
+                SerializableEmail serializableEmail = new SerializableEmail(client.newEmail.getSender(), client.newEmail.getReceiver(), client.newEmail.getSubject(), client.newEmail.getBody(), client.newEmail.getState(), client.newEmail.getDateTime());
+                stream.writeObject(serializableEmail);
+                stream.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                socket.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     //TODO verifica che funzioni perfettamente
     @FXML
     public void onSendButtonClicked(ActionEvent event) {
@@ -60,7 +86,7 @@ public class NewMsgController {
         stage.close();
 
         try {
-            client.sendActionToServer(Operation.SEND_EMAIL);
+            sendActionToServer(Operation.SEND_EMAIL);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -84,7 +110,7 @@ public class NewMsgController {
         }
 
         try {
-            client.sendActionToServer(Operation.NEW_DRAFT);
+            sendActionToServer(Operation.NEW_DRAFT);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

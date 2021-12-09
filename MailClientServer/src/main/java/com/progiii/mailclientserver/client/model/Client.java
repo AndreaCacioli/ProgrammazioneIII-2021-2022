@@ -1,23 +1,16 @@
 package com.progiii.mailclientserver.client.model;
 
-import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.GravatarRequests;
-import com.progiii.mailclientserver.utils.Operation;
-import com.progiii.mailclientserver.utils.SerializableEmail;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
-
 import java.io.*;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -151,26 +144,6 @@ public class Client {
                 ex.printStackTrace();
             }
             i++;
-        }
-    }
-
-    public void sendActionToServer(Operation operation) {
-        try {
-            Socket socket = new Socket(InetAddress.getLocalHost(), 6969);
-            try {
-                ObjectOutputStream stream = new ObjectOutputStream(socket.getOutputStream());
-
-                stream.writeObject(new Action(this, this.newEmail.getReceiver(), operation));
-                SerializableEmail serializableEmail = new SerializableEmail(this.newEmail.getSender(), this.newEmail.getReceiver(), this.newEmail.getSubject(), this.newEmail.getBody(), this.newEmail.getState(), this.newEmail.getDateTime());
-                stream.writeObject(serializableEmail);
-                stream.flush();
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                socket.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }

@@ -15,7 +15,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 import java.io.EOFException;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.*;
@@ -53,7 +52,9 @@ public class ClientController {
     private Client client;
     private Stage newMessageStage;
     private Socket socket;
+    private NewMsgController newMsgController;
     private ScheduledExecutorService scheduledExServBackup;
+    private ScheduledExecutorService scheduledExServConn;
 
 
     public void setStage(Stage newMessageStage) {
@@ -75,7 +76,7 @@ public class ClientController {
     /**
      * Binding elements that do not change during the life of the app
      */
-    public void setGravatarBindings(){
+    public void setGravatarBindings() {
         try {
             Socket socket = new Socket("www.google.com", 80);
             if (socket.isConnected()) {
@@ -84,8 +85,7 @@ public class ClientController {
                 System.out.println("OK Internet Connection");
             } else System.out.println("NO Internet Connection");
             socket.close();
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             System.out.println("---NO Internet Connection---");
         }
 
@@ -168,7 +168,7 @@ public class ClientController {
     private void deleteSelectedEmail() {
         if (client.selectedEmail != null) {
             try {
-                client.sendActionToServer(Operation.DELETE_EMAIL);
+                newMsgController.sendActionToServer(Operation.DELETE_EMAIL);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -266,9 +266,13 @@ public class ClientController {
         } catch (ConnectException connectException) {
             System.out.println("Connection To Server Failure");
             restartConnButton.setDisable(false);
-
+            startPeriodicReqConnection();
         } catch (Exception ex) {
             ex.printStackTrace();
+        } finally {
+            if (socket != null && scheduledExServConn != null) {
+                shutdownPeriodicReqConnection();
+            }
         }
     }
 
@@ -339,6 +343,27 @@ public class ClientController {
 
     public void shutdownPeriodicBackup() {
         scheduledExServBackup.shutdown();
+    }
+
+    private void startPeriodicReqConnection() {
+        if (scheduledExServConn != null) return;
+        scheduledExServConn = Executors.newScheduledThreadPool(1);
+        scheduledExServConn.scheduleAtFixedRate(new connectionReqTask(), 1, 20, TimeUnit.SECONDS);
+    }
+
+    class connectionReqTask implements Runnable {
+        public connectionReqTask() {
+        }
+
+        @Override
+        public void run() {
+            System.out.println("Try To Connect To Server...");
+            openConnectionToServer();
+        }
+    }
+
+    public void shutdownPeriodicReqConnection() {
+        scheduledExServConn.shutdown();
     }
 
 }
