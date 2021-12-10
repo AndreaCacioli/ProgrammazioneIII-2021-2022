@@ -7,6 +7,7 @@ import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.Operation;
 import com.progiii.mailclientserver.utils.SerializableEmail;
 import com.progiii.mailclientserver.utils.ServerResponse;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -58,8 +59,8 @@ public class ClientController {
     private Stage newMessageStage;
     private Socket socket;
     private NewMsgController newMsgController;
-    private ScheduledExecutorService scheduledExServBackup;
     private ScheduledExecutorService scheduledExServConn;
+    private ScheduledExecutorService scheduledExEmailDownloader;
     protected final ReentrantLock reentrantLock = new ReentrantLock();
     ObjectOutputStream objectOutputStream;
 
@@ -101,7 +102,7 @@ public class ClientController {
 
     }
 
-    public void setStatusBiding(){
+    public void setStatusBiding() {
         this.getStatusLabel().textProperty().bind(client.statusProperty());
     }
 
@@ -122,7 +123,7 @@ public class ClientController {
     //Methods that change the GUI//
     @FXML
     public void initialize() {
-        startPeriodicBackup();
+
     }
 
     @FXML
@@ -307,7 +308,6 @@ public class ClientController {
                             }
 
                         }
-                        client.saveAll();
                     } else {
                         //TODO fai sapere all'utente che é stato impossibile eseguire la richiesta con un popup
                     }
@@ -355,10 +355,22 @@ public class ClientController {
                         serializableEmail = (SerializableEmail) object;
                         Email email = new Email(serializableEmail);
                         switch (email.getState()) {
-                            case RECEIVED -> client.inboxProperty().add(email);
-                            case SENT -> client.sentProperty().add(email);
-                            case DRAFTED -> client.draftsProperty().add(email);
-                            case TRASHED -> client.trashProperty().add(email);
+                            case RECEIVED -> {
+                                if (!client.contains(client.inboxProperty(), email))
+                                    client.inboxProperty().add(email);
+                            }
+                            case SENT -> {
+                                if (!client.contains(client.sentProperty(), email))
+                                    client.sentProperty().add(email);
+                            }
+                            case DRAFTED -> {
+                                if (!client.contains(client.draftsProperty(), email))
+                                    client.draftsProperty().add(email);
+                            }
+                            case TRASHED -> {
+                                if (!client.contains(client.trashProperty(), email))
+                                    client.trashProperty().add(email);
+                            }
                         }
                     }
 
@@ -370,32 +382,15 @@ public class ClientController {
                     closeConnectionToServer();
                 }
             }
+            SimpleListProperty<Email> allEmails = new SimpleListProperty<>();
+            allEmails.addAll(client.inboxProperty());
+            allEmails.addAll(client.sentProperty());
+            allEmails.addAll(client.draftsProperty());
+            allEmails.addAll(client.trashProperty());
+            for (Email email : allEmails) {
+                if (email.getID() > Email.serial) Email.serial = email.getID();
+            }
         }).start();
-
-    }
-
-
-    /////////////////////////
-    //Local backup of files//
-    private void startPeriodicBackup() {
-        if (scheduledExServBackup != null) return;
-        scheduledExServBackup = Executors.newScheduledThreadPool(1);
-        scheduledExServBackup.scheduleAtFixedRate(new backupTask(), 1, 5, TimeUnit.MINUTES);
-    }
-
-    class backupTask implements Runnable {
-        public backupTask() {
-        }
-
-        @Override
-        public void run() {
-            client.saveAll();
-            System.out.println("Backup!");
-        }
-    }
-
-    public void shutdownPeriodicBackup() {
-        scheduledExServBackup.shutdown();
     }
 
     ///////////////////////////////////////
@@ -403,11 +398,11 @@ public class ClientController {
     private void startPeriodicReqConnection() {
         if (scheduledExServConn != null) return;
         scheduledExServConn = Executors.newScheduledThreadPool(1);
-        scheduledExServConn.scheduleAtFixedRate(new connectionReqTask(), 1, 20, TimeUnit.SECONDS);
+        scheduledExServConn.scheduleAtFixedRate(new ConnectionReqTask(), 1, 20, TimeUnit.SECONDS);
     }
 
-    class connectionReqTask implements Runnable {
-        public connectionReqTask() {
+    class ConnectionReqTask implements Runnable {
+        public ConnectionReqTask() {
         }
 
         @Override
@@ -431,12 +426,11 @@ public class ClientController {
         try {
             //Test to see if it throws an exception
             getNewSocket();
-            sendActionToServer(new Action(client,null,Operation.PING));
+            sendActionToServer(new Action(client, null, Operation.PING));
             ServerResponse response = waitForResponse();
             closeConnectionToServer();
-            if(response == ServerResponse.ACTION_COMPLETED)
-            {
-                loadAllFromServer();
+            if (response == ServerResponse.ACTION_COMPLETED) {
+                startPeriodicEmailDownloader();
                 System.out.println("Connection To Server Successes");
                 client.statusProperty().setValue("Connected");
             }
@@ -462,4 +456,25 @@ public class ClientController {
             ex.printStackTrace();
         }
     }
+
+    private void startPeriodicEmailDownloader() {
+        if (scheduledExEmailDownloader != null) return;
+        scheduledExEmailDownloader = Executors.newScheduledThreadPool(1);
+        scheduledExEmailDownloader.scheduleAtFixedRate(new PeriodicEmailDownloader(), 0, 5, TimeUnit.SECONDS);
+    }
+
+    class PeriodicEmailDownloader implements Runnable {
+        public PeriodicEmailDownloader() {
+        }
+
+        @Override
+        public void run() {
+            loadAllFromServer();
+        }
+    }
+
+    public void shutdownPeriodicEmailDownloader() {
+        scheduledExEmailDownloader.shutdown();
+    }
+
 }

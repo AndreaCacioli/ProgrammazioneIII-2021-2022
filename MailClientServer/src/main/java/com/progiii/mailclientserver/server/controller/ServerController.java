@@ -219,7 +219,7 @@ public class ServerController {
         ServerResponse addEmailToReceiversInbox(Action actionRequest, ObjectInputStream inStream) {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
-                Email sentEmail = new Email(actionRequest.getSender().strip(), actionRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.SENT, serializableEmail.getDate());
+                Email sentEmail = new Email(serializableEmail);
                 Email inboxEmail = sentEmail.clone();
                 inboxEmail.setState(EmailState.RECEIVED);
                 Client sender = findClientByAddress(actionRequest.getSender());

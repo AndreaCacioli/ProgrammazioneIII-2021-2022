@@ -15,9 +15,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class NewMsgController {
@@ -69,15 +67,10 @@ public class NewMsgController {
     public void onSendButtonClicked(ActionEvent event) {
         //TODO verifica che funzioni perfettamente
 
-        textAreaMsg.textProperty().unbindBidirectional(client.newEmail.bodyProperty());
-        textFieldTo.textProperty().unbindBidirectional(client.newEmail.receiverProperty());
-        textFieldSubject.textProperty().unbindBidirectional(client.newEmail.subjectProperty());
+        AtomicBoolean everythingWentFine = new AtomicBoolean(false);
 
-        Node source = (Node) event.getSource();
-        Stage stage = (Stage) source.getScene().getWindow();
-        stage.close();
 
-        new Thread(() -> {
+        Thread t1 = new Thread(() -> {
                 synchronized (clientController.reentrantLock) {
                     try {
                     clientController.getNewSocket();
@@ -88,7 +81,11 @@ public class NewMsgController {
                         System.out.println("Something went wrong while sending an email");
                         //TODO fai sapere che qualcosa é andato storto
                     }
-                    client.saveAll();
+                    else //ACTION_COMPLETED
+                    {
+                        client.sentProperty().add(client.newEmail);
+                        everythingWentFine.set(true);
+                    }
                     client.newEmail = new Email();
                 } catch(Exception ex){
                     ex.printStackTrace();
@@ -96,7 +93,22 @@ public class NewMsgController {
                     clientController.closeConnectionToServer();
                 }
             }
-        }).start();
+        });
+
+        t1.start();
+        try{t1.join();}catch(Exception ex) {ex.printStackTrace();}
+
+        if(everythingWentFine.get())
+        {
+            textAreaMsg.textProperty().unbindBidirectional(client.newEmail.bodyProperty());
+            textFieldTo.textProperty().unbindBidirectional(client.newEmail.receiverProperty());
+            textFieldSubject.textProperty().unbindBidirectional(client.newEmail.subjectProperty());
+
+            Node source = (Node) event.getSource();
+            Stage stage = (Stage) source.getScene().getWindow();
+            stage.close();
+        }
+
     }
 
     @FXML
@@ -126,7 +138,6 @@ public class NewMsgController {
                     if(response == ServerResponse.ACTION_COMPLETED)
                     {
                         client.draftsProperty().add(client.newEmail);
-                        client.saveAll();
                     }
                     else
                     {

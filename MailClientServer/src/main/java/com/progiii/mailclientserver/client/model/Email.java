@@ -5,17 +5,24 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Random;
 
-public class Email {
+public class Email implements Comparable<Email> {
+    public static int serial = 0;
     private final StringProperty sender;
     private final StringProperty receiver;
     private final StringProperty subject;
     private final StringProperty body;
+    private int ID;
 
 
     private EmailState state;
     private final LocalDateTime dateTime;
+
+    public int getID() {
+        return ID;
+    }
 
     public String getSender() {
         return sender.get();
@@ -65,15 +72,27 @@ public class Email {
         this.body = new SimpleStringProperty(body);
         this.state = state;
         dateTime = LocalDateTime.now();
+        ID = ++Email.serial;
     }
 
-    public Email(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime) {
+    public Email(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime localDateTime) {
+        this.sender = new SimpleStringProperty(sender);
+        this.receiver = new SimpleStringProperty(receiver);
+        this.subject = new SimpleStringProperty(subject);
+        this.body = new SimpleStringProperty(body);
+        this.state = state;
+        dateTime = localDateTime;
+        ID = ++Email.serial;
+    }
+
+    public Email(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime, int ID) {
         this.sender = new SimpleStringProperty(sender);
         this.receiver = new SimpleStringProperty(receiver);
         this.subject = new SimpleStringProperty(subject);
         this.body = new SimpleStringProperty(body);
         this.state = state;
         this.dateTime = dateTime;
+        this.ID = ID;
     }
 
     public Email(SerializableEmail email)
@@ -84,6 +103,7 @@ public class Email {
         this.body = new SimpleStringProperty(email.getBody());
         this.state = email.getState();
         this.dateTime = email.getDateTime();
+        ID = email.getID();
     }
 
     public Email() {
@@ -93,6 +113,7 @@ public class Email {
         this.body = new SimpleStringProperty("");
         this.state = EmailState.DRAFTED;
         dateTime = LocalDateTime.now();
+        ID = ++Email.serial;
     }
 
     @Override
@@ -166,4 +187,21 @@ public class Email {
         return new Email(this.getSender(),this.getReceiver(), this.getSubject(),this.getBody(),this.getState(),this.getDateTime());
     }
 
+    @Override
+    public int compareTo(Email o) {
+        return getID() - o.getID();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Email email = (Email) o;
+        return ID == email.ID;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ID);
+    }
 }

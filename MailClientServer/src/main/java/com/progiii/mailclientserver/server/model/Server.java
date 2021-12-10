@@ -24,7 +24,7 @@ public class Server {
     SimpleStringProperty log;
     private final String JSONClientsFile = "./src/main/resources/com/progiii/mailclientserver/server/data/clients.json";
     private boolean running = true;
-    private String[] names = {"inbox", "sent", "drafts", "trashed"};
+    private final String[] names = {"inbox", "sent", "drafts", "trashed"};
 
     public ArrayList<Action> getActions() {
         return actions;
@@ -38,19 +38,15 @@ public class Server {
         this.running = running;
     }
 
-    public SimpleStringProperty logProperty() {
-        return log;
-    }
+    public SimpleStringProperty logProperty() { return log; }
 
     /**
      * Server's builder
      */
-    //TODO prendere i dati dei client da file
     public Server() {
         clients = new ArrayList<>();
         actions = new ArrayList<>();
         log = new SimpleStringProperty("");
-
         readFromJSonClientsFile();
     }
 
@@ -58,10 +54,10 @@ public class Server {
      * we use readFromJSonClientsFile to
      * read the client's JSon
      */
-     public void readFromJSonClientsFile() {
-         clients = new ArrayList<Client>();
-         System.out.println("Loading");
-         JSONParser jsonParser = new JSONParser();
+    public void readFromJSonClientsFile() {
+        clients = new ArrayList<>();
+        System.out.println("Loading");
+        JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader(JSONClientsFile)) {
             Object obj = jsonParser.parse(reader);
             JSONArray clientsList = (JSONArray) obj;
@@ -78,11 +74,11 @@ public class Server {
         }
     }
 
-
     /**
      * pareClientObject is a function used by
      * readFromJSonClientsFile to take every information
      * of one single client
+     *
      * @param clientJson
      * @param clientObject
      */
@@ -98,11 +94,11 @@ public class Server {
                 String subject = (String) emailObj.get("subject");
                 String body = (String) emailObj.get("body");
                 String dateTime = (String) emailObj.get("dateTime");
+                int ID = (int) emailObj.get("ID");
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
                 EmailState emailState = stringToEmailState(names[i]);
-                Email email = new Email(sender, receiver,subject,body,emailState, LocalDateTime.parse(dateTime, formatter));
-                switch (emailState)
-                {
+                Email email = new Email(sender, receiver, subject, body, emailState, LocalDateTime.parse(dateTime, formatter), ID);
+                switch (emailState) {
                     case RECEIVED -> clientObject.inboxProperty().add(email);
                     case SENT -> clientObject.sentProperty().add(email);
                     case DRAFTED -> clientObject.draftsProperty().add(email);
@@ -112,13 +108,19 @@ public class Server {
         }
     }
 
-    public static EmailState stringToEmailState(String s)
-    {
-        if(s.compareTo("inbox") == 0){return EmailState.RECEIVED;}
-        if(s.compareTo("sent") == 0){return EmailState.SENT;}
-        if(s.compareTo("drafts") == 0){return EmailState.DRAFTED;}
-        if(s.compareTo("trashed") == 0){return EmailState.TRASHED;}
-        else return null;
+    public static EmailState stringToEmailState(String s) {
+        if (s.compareTo("inbox") == 0) {
+            return EmailState.RECEIVED;
+        }
+        if (s.compareTo("sent") == 0) {
+            return EmailState.SENT;
+        }
+        if (s.compareTo("drafts") == 0) {
+            return EmailState.DRAFTED;
+        }
+        if (s.compareTo("trashed") == 0) {
+            return EmailState.TRASHED;
+        } else return null;
     }
 
     /**
@@ -181,6 +183,7 @@ public class Server {
                     emailDetails.put("subject", email.getSubject());
                     emailDetails.put("body", email.getBody());
                     emailDetails.put("dateTime", email.getDateTime().format(formatter));
+                    emailDetails.put("ID", email.getID());
                     arrayOfEmail.add(emailDetails);
                 }
                 section = new JSONObject();

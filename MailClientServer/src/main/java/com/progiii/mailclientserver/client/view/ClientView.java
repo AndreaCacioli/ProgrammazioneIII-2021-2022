@@ -32,10 +32,10 @@ public class ClientView extends Application {
         Scene scene1 = new Scene(v, 600, 400);
         Stage newStage = new Stage();
 
+        stage.setOnCloseRequest((windowEvent -> controller.shutdownPeriodicEmailDownloader()));
         stage.setOnShown((event) -> controller.openConnectionToServer());
-        stage.setOnCloseRequest((event) -> controller.shutdownPeriodicBackup());
         newStage.setOnShown((event) -> controller1.bindEverything());
-        newStage.setOnCloseRequest(controller1::onSendToDraftsButtonClicked);
+        newStage.setOnCloseRequest((windowEvent) -> controller1.onSendToDraftsButtonClicked(windowEvent));
         newStage.setScene(scene1);
         newStage.setTitle("New Email");
 
