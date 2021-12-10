@@ -1,6 +1,5 @@
 package com.progiii.mailclientserver.utils;
 
-import com.progiii.mailclientserver.client.controller.ClientController;
 import javafx.scene.image.Image;
 
 import java.io.InputStream;

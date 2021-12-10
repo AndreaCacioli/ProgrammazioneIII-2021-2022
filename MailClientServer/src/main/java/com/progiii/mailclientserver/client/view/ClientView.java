@@ -17,7 +17,7 @@ public class ClientView extends Application {
     @Override
     public void start(Stage stage) throws IOException {
 
-        Client client = new Client(getParameters().getRaw().get(0));
+        Client client = new Client(getParameters().getRaw().get(0), true);
 
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ClientView.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1000, 550);
@@ -28,6 +28,7 @@ public class ClientView extends Application {
         Parent v = fxmlLoader1.load();
         NewMsgController controller1 = fxmlLoader1.getController();
         controller1.setClient(client);
+        controller1.setClientController(controller);
         Scene scene1 = new Scene(v, 600, 400);
         Stage newStage = new Stage();
 
@@ -40,13 +41,16 @@ public class ClientView extends Application {
 
 
         controller.setStage(newStage);
+        controller.setNewMsgController(controller1);
 
         stage.setTitle("Mail Sender - 9000");
         stage.setScene(scene);
         scene.getStylesheets().add(Objects.requireNonNull(ClientView.class.getResource("appStyle.css")).toExternalForm());
         stage.show();
 
+        controller.setStatusBiding();
         controller.setGravatarBindings();
+
     }
 
     public static void main(String[] args) {

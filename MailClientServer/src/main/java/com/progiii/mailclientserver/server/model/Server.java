@@ -69,7 +69,7 @@ public class Server {
                 JSONObject jsonClient = (JSONObject) clientsList.get(i);
                 String clientString = jsonClient.toString();
                 String[] junk = clientString.split("\"");
-                Client client = new Client(junk[1]);
+                Client client = new Client(junk[1], false);
                 clients.add(client);
                 parseClientObject((JSONObject) clientsList.get(i), client);
             }
@@ -112,7 +112,7 @@ public class Server {
         }
     }
 
-    EmailState stringToEmailState(String s)
+    public static EmailState stringToEmailState(String s)
     {
         if(s.compareTo("inbox") == 0){return EmailState.RECEIVED;}
         if(s.compareTo("sent") == 0){return EmailState.SENT;}
@@ -154,7 +154,7 @@ public class Server {
      * createClientsJSon() is used to create the JSon file
      * which contains the information the all clients
      */
-    public synchronized void createClientsJSon() {
+    public synchronized void saveClientsToJSON() {
         System.out.println("Server Saving");
         JSONArray array = new JSONArray();
 

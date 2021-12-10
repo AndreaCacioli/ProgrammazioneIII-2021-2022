@@ -127,10 +127,23 @@ public class ServerController {
         server.logProperty().setValue(server.logProperty().getValue() + " SHUTTING DOWN " + '\n');
     }
 
+    private Client findClientByAddress(String address) {
+        Client sender = null;
+        ArrayList<Client> clients = server.getClients();
+        int i = 0;
+        while ((sender == null) && i < clients.size()) {
+            if (clients.get(i).getAddress().equals(address)) sender = clients.get(i);
+            i++;
+        }
+        return sender;
+    }
+
+
     class ServerTask implements Runnable {
         Socket socketS;
         ObjectOutputStream objectOutputStream;
         ObjectInputStream objectInputStream;
+        boolean everythingInitialized = false;
 
         public ServerTask(Socket socketS) {
             this.socketS = socketS;
@@ -138,11 +151,13 @@ public class ServerController {
             {
                 objectOutputStream = new ObjectOutputStream(socketS.getOutputStream());
                 objectInputStream = new ObjectInputStream(socketS.getInputStream());
+                everythingInitialized = true;
             }catch (Exception ex) {ex.printStackTrace();}
         }
 
         @Override
         public void run() {
+            if(!everythingInitialized) return;
             try {
                 synchronized (logTextArea)
                 {
@@ -150,22 +165,36 @@ public class ServerController {
                 }
                 Action actionRequest = (Action) objectInputStream.readObject();
                 ServerResponse response;
+                if(actionRequest.getOperation() == Operation.PING)
+                {
+                    sendResponse(ServerResponse.ACTION_COMPLETED);
+                    server.add(actionRequest);
+                }
                 if (actionRequest.getOperation() == Operation.SEND_EMAIL) {
-                    response = sendEmail(actionRequest, objectInputStream);
+                    response = addEmailToReceiversInbox(actionRequest, objectInputStream);
                     sendResponse(response);
+                    server.saveClientsToJSON();
                 } else if (actionRequest.getOperation() == Operation.NEW_DRAFT) {
-                    response = draftsEmail(actionRequest, objectInputStream);
+                    response = addEmailToSendersDrafts(actionRequest, objectInputStream);
                     sendResponse(response);
+                    server.saveClientsToJSON();
                 } else if (actionRequest.getOperation() == Operation.DELETE_EMAIL) {
                     response = deleteEmail(actionRequest, objectInputStream);
                     sendResponse(response);
+                    server.saveClientsToJSON();
                 } else if (actionRequest.getOperation() == Operation.GET_ALL_EMAILS) {
                     response = sendAllEmails(actionRequest);
                     sendResponse(response);
                 }
-                server.logProperty().setValue(server.logProperty().getValue() + " Request Handled by " + Thread.currentThread().getName() + '\n');
+                synchronized (logTextArea)
+                {
+                    server.logProperty().setValue(server.logProperty().getValue() + " Request Handled by " + Thread.currentThread().getName() + '\n');
+                }
             } catch (Exception ex) {
-                server.logProperty().setValue(server.logProperty().getValue() + " Error Processing Request " + '\n');
+                synchronized (logTextArea)
+                {
+                    server.logProperty().setValue(server.logProperty().getValue() + " Error Processing Request " + '\n');
+                }
                 ex.printStackTrace();
             }
             finally {
@@ -178,17 +207,6 @@ public class ServerController {
 
 
 
-        private Client findClientByAddress(String address) {
-            Client sender = null;
-            ArrayList<Client> clients = server.getClients();
-            int i = 0;
-            while ((sender == null) && i < clients.size()) {
-                if (clients.get(i).getAddress().equals(address)) sender = clients.get(i);
-                i++;
-            }
-            return sender;
-        }
-
         private void sendResponse(ServerResponse response) {
                 try {
                     objectOutputStream.writeObject(response);
@@ -198,7 +216,7 @@ public class ServerController {
                 }
         }
 
-        ServerResponse sendEmail(Action actionRequest, ObjectInputStream inStream) {
+        ServerResponse addEmailToReceiversInbox(Action actionRequest, ObjectInputStream inStream) {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email sentEmail = new Email(actionRequest.getSender().strip(), actionRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.SENT, serializableEmail.getDate());
@@ -220,7 +238,7 @@ public class ServerController {
             }
         }
 
-        ServerResponse draftsEmail(Action actionRequest, ObjectInputStream inStream) {
+        ServerResponse addEmailToSendersDrafts(Action actionRequest, ObjectInputStream inStream) {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email draftedEmail = new Email(actionRequest.getSender().strip(), actionRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.DRAFTED, serializableEmail.getDate());
@@ -235,6 +253,7 @@ public class ServerController {
 
         ServerResponse deleteEmail(Action actionRequest, ObjectInputStream inStream) {
             try {
+                //TODO find where the email was and based on that delete it permanently or move it to trash
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email deletedEmail = new Email(actionRequest.getSender().strip(), actionRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.TRASHED, serializableEmail.getDate());
                 Client sender = findClientByAddress(actionRequest.getSender());
@@ -250,9 +269,10 @@ public class ServerController {
                 try {
                     Client requestClient = findClientByAddress(actionRequest.getSender());
 
+                    //if the client has never been seen before, since he just logged on we add him to possible new clients
                     if(requestClient == null) //only one time this could happen
                     {
-                        server.addClient(new Client(actionRequest.getSender()));
+                        server.addClient(new Client(actionRequest.getSender(), false));
                         return ServerResponse.CLIENT_NOT_FOUND;
                     }
 
@@ -285,7 +305,7 @@ public class ServerController {
 
         @Override
         public void run() {
-            server.createClientsJSon();
+            server.saveClientsToJSON();
         }
     }
 

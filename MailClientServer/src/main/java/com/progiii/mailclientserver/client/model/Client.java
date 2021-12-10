@@ -22,18 +22,9 @@ public class Client {
     private SimpleListProperty<Email> sent;
     private SimpleListProperty<Email> trash;
     private SimpleObjectProperty<Image> image;
+    private SimpleStringProperty status;
 
-    public SimpleObjectProperty<Image> imageProperty() {
-        return image;
-    }
-
-    public SimpleStringProperty addressProperty() {
-        return address;
-    }
-
-    public String getAddress() {
-        return address.get();
-    }
+    public SimpleStringProperty addressProperty() { return address; }
 
     public SimpleListProperty<Email> inboxProperty() {
         return inbox;
@@ -49,6 +40,16 @@ public class Client {
 
     public SimpleListProperty<Email> trashProperty() {
         return trash;
+    }
+
+    public SimpleObjectProperty<Image> imageProperty() {
+        return image;
+    }
+
+    public SimpleStringProperty statusProperty() { return status; }
+
+    public String getAddress() {
+        return address.get();
     }
 
     public Email selectedEmail;
@@ -71,13 +72,14 @@ public class Client {
 
         }
     */
-    public Client(String address) {
+    public Client(String address, boolean withImage) {
         this.address = new SimpleStringProperty(address);
         this.inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.sent = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.trash = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.drafts = new SimpleListProperty<>(FXCollections.observableArrayList());
-        image = new SimpleObjectProperty<Image>(GravatarRequests.getProfilePicture(address));
+        if(withImage) image = new SimpleObjectProperty<Image>(GravatarRequests.getProfilePicture(address));
+        this.status = new SimpleStringProperty("");
 
     }
 
