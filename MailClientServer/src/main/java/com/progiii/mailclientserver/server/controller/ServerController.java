@@ -46,11 +46,6 @@ public class ServerController {
     private Button stopServerButton;
 
     @FXML
-    private ScrollPane sp;
-    @FXML
-    private AnchorPane ap;
-
-    @FXML
     public void initialize() {
         if (this.server != null)
             throw new IllegalStateException("Server: Server can only be initialized once");
@@ -90,6 +85,13 @@ public class ServerController {
         server.logProperty().setValue("");
     }
 
+    /**
+     * startServer is a method
+     * that create socket, create a pool of thread
+     * used to catch and execute the client request connection, create
+     * a scheduled pool of Thread to save client's info every 30sec.
+     * A single Thread handle the request of client.
+     */
     private void startServer() {
         try {
             serverSocket = new ServerSocket(6969);
@@ -110,12 +112,12 @@ public class ServerController {
                     ServerTask st = new ServerTask(incomingRequestSocket);
                     executorService.execute(st);
                 } catch (SocketException socketException) {
-                    System.out.println("Server: Socket Closing");
+                    System.out.println("Socket Closing");
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
-            System.out.println("Server: Thread finish his life");
+            System.out.println("Server Thread finish his life");
         }).start();
     }
 
@@ -123,11 +125,12 @@ public class ServerController {
         server.setRunning(false);
         executorService.shutdown();
         scheduledExecutorService.shutdown();
+        server.saveClientsToJSON(); ////////////////
         new Thread(new SaveAllTask()).start();
         try {
             serverSocket.close();
         } catch (IOException ioException) {
-            System.out.println("Server: Server Closing, aborting wait");
+            System.out.println("Server Closing, aborting wait");
         }
         server.logProperty().setValue(server.logProperty().getValue() + " SHUTTING DOWN " + '\n');
     }
@@ -142,7 +145,6 @@ public class ServerController {
         }
         return sender;
     }
-
 
     class ServerTask implements Runnable {
         Socket socketS;
@@ -208,7 +210,12 @@ public class ServerController {
             }
         }
 
-
+        /**
+         * Method used to send
+         * a response to Client using
+         * socket outputStream
+         * @param response
+         */
         private void sendResponse(ServerResponse response) {
             try {
                 objectOutputStream.writeObject(response);
@@ -301,6 +308,10 @@ public class ServerController {
         }
     }
 
+    /**
+     * We use this runnable class
+     * to save client's info
+     */
     class SaveAllTask implements Runnable {
         public SaveAllTask() {
         }

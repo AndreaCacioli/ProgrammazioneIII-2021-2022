@@ -38,7 +38,9 @@ public class Server {
         this.running = running;
     }
 
-    public SimpleStringProperty logProperty() { return log; }
+    public SimpleStringProperty logProperty() {
+        return log;
+    }
 
     /**
      * Server's builder
@@ -48,64 +50,6 @@ public class Server {
         actions = new ArrayList<>();
         log = new SimpleStringProperty("");
         readFromJSonClientsFile();
-    }
-
-    /**
-     * we use readFromJSonClientsFile to
-     * read the client's JSon
-     */
-    public void readFromJSonClientsFile() {
-        clients = new ArrayList<>();
-        System.out.println("Loading");
-        JSONParser jsonParser = new JSONParser();
-        try (FileReader reader = new FileReader(JSONClientsFile)) {
-            Object obj = jsonParser.parse(reader);
-            JSONArray clientsList = (JSONArray) obj;
-            for (int i = 0; i < clientsList.size(); i++) {
-                JSONObject jsonClient = (JSONObject) clientsList.get(i);
-                String clientString = jsonClient.toString();
-                String[] junk = clientString.split("\"");
-                Client client = new Client(junk[1], false);
-                clients.add(client);
-                parseClientObject((JSONObject) clientsList.get(i), client);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * pareClientObject is a function used by
-     * readFromJSonClientsFile to take every information
-     * of one single client
-     *
-     * @param clientJson
-     * @param clientObject
-     */
-    private void parseClientObject(JSONObject clientJson, Client clientObject) {
-        JSONArray sectionList = (JSONArray) clientJson.get(clientObject.getAddress());
-        for (int i = 0; i < sectionList.size(); i++) {
-            JSONObject sectionObj = (JSONObject) sectionList.get(i);
-            JSONArray emailList = (JSONArray) sectionObj.get(names[i]);
-            for (int j = 0; j < emailList.size(); j++) {
-                JSONObject emailObj = (JSONObject) emailList.get(j);
-                String sender = (String) emailObj.get("sender");
-                String receiver = (String) emailObj.get("receiver");
-                String subject = (String) emailObj.get("subject");
-                String body = (String) emailObj.get("body");
-                String dateTime = (String) emailObj.get("dateTime");
-                int ID = (int) emailObj.get("ID");
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-                EmailState emailState = stringToEmailState(names[i]);
-                Email email = new Email(sender, receiver, subject, body, emailState, LocalDateTime.parse(dateTime, formatter), ID);
-                switch (emailState) {
-                    case RECEIVED -> clientObject.inboxProperty().add(email);
-                    case SENT -> clientObject.sentProperty().add(email);
-                    case DRAFTED -> clientObject.draftsProperty().add(email);
-                    case TRASHED -> clientObject.trashProperty().add(email);
-                }
-            }
-        }
     }
 
     public static EmailState stringToEmailState(String s) {
@@ -123,12 +67,7 @@ public class Server {
         } else return null;
     }
 
-    /**
-     * Function that add Action and
-     * set the log value of the server
-     *
-     * @param incomingRequest
-     */
+
     public synchronized void add(Action incomingRequest) {
         actions.add(incomingRequest);
         log.setValue(log.getValue() + incomingRequest.toString() + '\n');
@@ -153,9 +92,60 @@ public class Server {
     }
 
     /**
-     * createClientsJSon() is used to create the JSon file
-     * which contains the information the all clients
+     * we use readFromJSonClientsFile to
+     * read the client's JSon
      */
+    public void readFromJSonClientsFile() {
+        clients = new ArrayList<>();
+        System.out.println("Loading Client's info...");
+        JSONParser jsonParser = new JSONParser();
+        try (FileReader reader = new FileReader(JSONClientsFile)) {
+            Object obj = jsonParser.parse(reader);
+            JSONArray clientsList = (JSONArray) obj;
+            for (int i = 0; i < clientsList.size(); i++) {
+                JSONObject jsonClient = (JSONObject) clientsList.get(i);
+                String clientString = jsonClient.toString();
+                String[] junk = clientString.split("\"");
+                Client client = new Client(junk[1], false);
+                clients.add(client);
+                parseClientObject((JSONObject) clientsList.get(i), client);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * pareClientObject is a function used by
+     * readFromJSonClientsFile to take every information
+     * of one single client
+     */
+    private void parseClientObject(JSONObject clientJson, Client clientObject) {
+        JSONArray sectionList = (JSONArray) clientJson.get(clientObject.getAddress());
+        for (int i = 0; i < sectionList.size(); i++) {
+            JSONObject sectionObj = (JSONObject) sectionList.get(i);
+            JSONArray emailList = (JSONArray) sectionObj.get(names[i]);
+            for (int j = 0; j < emailList.size(); j++) {
+                JSONObject emailObj = (JSONObject) emailList.get(j);
+                String sender = (String) emailObj.get("sender");
+                String receiver = (String) emailObj.get("receiver");
+                String subject = (String) emailObj.get("subject");
+                String body = (String) emailObj.get("body");
+                String dateTime = (String) emailObj.get("dateTime");
+                long ID = (long) emailObj.get("ID");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+                EmailState emailState = stringToEmailState(names[i]);
+                Email email = new Email(sender, receiver, subject, body, emailState, LocalDateTime.parse(dateTime, formatter), ID);
+                switch (emailState) {
+                    case RECEIVED -> clientObject.inboxProperty().add(email);
+                    case SENT -> clientObject.sentProperty().add(email);
+                    case DRAFTED -> clientObject.draftsProperty().add(email);
+                    case TRASHED -> clientObject.trashProperty().add(email);
+                }
+            }
+        }
+    }
+
     public synchronized void saveClientsToJSON() {
         System.out.println("Server Saving");
         JSONArray array = new JSONArray();
@@ -211,4 +201,5 @@ public class Server {
             }
         }
     }
+
 }

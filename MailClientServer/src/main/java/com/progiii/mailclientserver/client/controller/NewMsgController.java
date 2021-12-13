@@ -6,16 +6,17 @@ import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.Operation;
 import com.progiii.mailclientserver.utils.SerializableEmail;
 import com.progiii.mailclientserver.utils.ServerResponse;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -79,8 +80,10 @@ public class NewMsgController {
                     clientController.sendEmailToServer(new SerializableEmail(client.newEmail));
                     ServerResponse response = clientController.waitForResponse();
                     if (response != ServerResponse.ACTION_COMPLETED) {
-                        System.out.println("Something went wrong while sending an email");
-                        //TODO fai sapere che qualcosa é andato storto
+                        Platform.runLater(() -> {
+                            Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while sending an email");
+                            a.show();
+                        });
                     } else //ACTION_COMPLETED
                     {
                         client.sentProperty().add(client.newEmail);
@@ -142,7 +145,10 @@ public class NewMsgController {
                     if (response == ServerResponse.ACTION_COMPLETED) {
                         client.draftsProperty().add(client.newEmail);
                     } else {
-                        //TODO fai sapere che qualcosa é andato storto
+                        Platform.runLater(() -> {
+                            Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while drafting an email");
+                            a.show();
+                        });
                     }
                     client.newEmail = new Email();
                 } catch (IOException socketException) {

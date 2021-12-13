@@ -437,7 +437,9 @@ public class ClientController {
             if (response == ServerResponse.ACTION_COMPLETED) {
                 startPeriodicEmailDownloader();
                 System.out.println("Connection To Server Successes");
-                client.statusProperty().setValue("Connected");
+                Platform.runLater(() -> {
+                    client.statusProperty().setValue("Connected");
+                });
             }
         } catch (Exception ioException) {
             setSocketFailure();
@@ -457,6 +459,7 @@ public class ClientController {
             restartConnButton.setVisible(true);
         });
     }
+
     protected void closeConnectionToServer() {
         if (client.statusProperty().getValue().compareTo("Connected") == 0) {
             try {
