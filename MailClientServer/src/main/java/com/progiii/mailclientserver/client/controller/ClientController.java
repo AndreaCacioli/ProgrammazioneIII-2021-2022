@@ -7,7 +7,9 @@ import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.Operation;
 import com.progiii.mailclientserver.utils.SerializableEmail;
 import com.progiii.mailclientserver.utils.ServerResponse;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleListProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -258,16 +260,12 @@ public class ClientController {
     }
 
     //This should be in critical section
-    public ServerResponse waitForResponse() {
-        try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-            ServerResponse response = (ServerResponse) objectInputStream.readObject();
-            System.out.println("Response: " + response);
-            return response;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return ServerResponse.UNKNOWN_ERROR;
+    public ServerResponse waitForResponse() throws IOException, ClassNotFoundException {
+        ServerResponse response = ServerResponse.UNKNOWN_ERROR;
+        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+        response = (ServerResponse) objectInputStream.readObject();
+        System.out.println("Response: " + response);
+        return response;
     }
 
     @FXML
@@ -282,9 +280,14 @@ public class ClientController {
                         SerializableEmail emailToBeDeleted = new SerializableEmail(client.selectedEmail);
                         sendEmailToServer(emailToBeDeleted);
                         response = waitForResponse();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                    } catch (IOException socketException) {
+                        setSocketFailure();
+                    } catch (ClassNotFoundException e) {
+                        System.out.println("Could not read from stream");
+                    } finally {
+                        closeConnectionToServer();
                     }
+
                     if (response == ServerResponse.ACTION_COMPLETED) {
                         switch (client.selectedEmail.getState()) {
                             case DRAFTED -> {
@@ -311,7 +314,6 @@ public class ClientController {
                     } else {
                         //TODO fai sapere all'utente che é stato impossibile eseguire la richiesta con un popup
                     }
-                    closeConnectionToServer();
                 }
             }
         }).start();
@@ -376,13 +378,16 @@ public class ClientController {
 
                 } catch (EOFException EOFException) {
                     System.out.println("Finished getting emails");
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                } catch (IOException socketException) {
+                    setSocketFailure();
+                } catch (ClassNotFoundException e) {
+                    System.out.println("Could not read from stream");
                 } finally {
                     closeConnectionToServer();
                 }
             }
-            SimpleListProperty<Email> allEmails = new SimpleListProperty<>();
+
+            SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
             allEmails.addAll(client.inboxProperty());
             allEmails.addAll(client.sentProperty());
             allEmails.addAll(client.draftsProperty());
@@ -434,12 +439,8 @@ public class ClientController {
                 System.out.println("Connection To Server Successes");
                 client.statusProperty().setValue("Connected");
             }
-        } catch (ConnectException connectException) {
-            System.out.println("Connection To Server Failure");
-            client.statusProperty().setValue("Try to connect to Server...");
-            startPeriodicReqConnection();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception ioException) {
+            setSocketFailure();
         } finally {
             restartConnButton.setVisible(!client.statusProperty().getValue().equals("Connected"));
             if (socket != null && scheduledExServConn != null) {
@@ -448,12 +449,22 @@ public class ClientController {
         }
     }
 
+    protected void setSocketFailure() {
+        Platform.runLater(() -> {
+            System.out.println("Connection To Server Failure");
+            client.statusProperty().setValue("Trying to connect to Server...");
+            startPeriodicReqConnection();
+            restartConnButton.setVisible(true);
+        });
+    }
     protected void closeConnectionToServer() {
-        try {
-            socket.close();
-            objectOutputStream.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        if (client.statusProperty().getValue().compareTo("Connected") == 0) {
+            try {
+                socket.close();
+                objectOutputStream.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -461,6 +472,10 @@ public class ClientController {
         if (scheduledExEmailDownloader != null) return;
         scheduledExEmailDownloader = Executors.newScheduledThreadPool(1);
         scheduledExEmailDownloader.scheduleAtFixedRate(new PeriodicEmailDownloader(), 0, 5, TimeUnit.SECONDS);
+    }
+
+    public void shutdownPeriodicEmailDownloader() {
+        scheduledExEmailDownloader.shutdown();
     }
 
     class PeriodicEmailDownloader implements Runnable {
@@ -473,8 +488,5 @@ public class ClientController {
         }
     }
 
-    public void shutdownPeriodicEmailDownloader() {
-        scheduledExEmailDownloader.shutdown();
-    }
 
 }

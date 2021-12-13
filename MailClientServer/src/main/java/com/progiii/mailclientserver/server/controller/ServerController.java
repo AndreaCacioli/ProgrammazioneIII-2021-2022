@@ -12,7 +12,10 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.AnchorPane;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -27,12 +30,9 @@ import java.util.concurrent.TimeUnit;
 
 public class ServerController {
 
-
-
+    private static final int SIZE_OF_THREAD_POOL = 6;
     private Server server;
-
     private ServerSocket serverSocket;
-
     private ExecutorService executorService;
     private ScheduledExecutorService scheduledExecutorService;
 
@@ -46,13 +46,17 @@ public class ServerController {
     private Button stopServerButton;
 
     @FXML
+    private ScrollPane sp;
+    @FXML
+    private AnchorPane ap;
+
+    @FXML
     public void initialize() {
         if (this.server != null)
             throw new IllegalStateException("Server: Server can only be initialized once");
         this.server = new Server();
-        logTextArea.textProperty().bind(server.logProperty());
-        executorService = Executors.newFixedThreadPool(9);
         startServerButton.setDisable(true);
+        logTextArea.textProperty().bind(server.logProperty());
         startServer();
     }
 
@@ -95,6 +99,7 @@ public class ServerController {
         }
         server.logProperty().setValue(server.logProperty().getValue() + " START SERVER... " + '\n');
         server.readFromJSonClientsFile();
+        executorService = Executors.newFixedThreadPool(SIZE_OF_THREAD_POOL);
         scheduledExecutorService = Executors.newScheduledThreadPool(1);
         scheduledExecutorService.scheduleAtFixedRate(new SaveAllTask(), 30, 30, TimeUnit.SECONDS);
 
@@ -147,26 +152,25 @@ public class ServerController {
 
         public ServerTask(Socket socketS) {
             this.socketS = socketS;
-            try
-            {
+            try {
                 objectOutputStream = new ObjectOutputStream(socketS.getOutputStream());
                 objectInputStream = new ObjectInputStream(socketS.getInputStream());
                 everythingInitialized = true;
-            }catch (Exception ex) {ex.printStackTrace();}
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
         @Override
         public void run() {
-            if(!everythingInitialized) return;
+            if (!everythingInitialized) return;
             try {
-                synchronized (logTextArea)
-                {
+                synchronized (logTextArea) {
                     server.logProperty().setValue(server.logProperty().getValue() + " Incoming Request handled by thread " + Thread.currentThread().getName() + '\n');
                 }
                 Action actionRequest = (Action) objectInputStream.readObject();
                 ServerResponse response;
-                if(actionRequest.getOperation() == Operation.PING)
-                {
+                if (actionRequest.getOperation() == Operation.PING) {
                     sendResponse(ServerResponse.ACTION_COMPLETED);
                     server.add(actionRequest);
                 }
@@ -186,34 +190,32 @@ public class ServerController {
                     response = sendAllEmails(actionRequest);
                     sendResponse(response);
                 }
-                synchronized (logTextArea)
-                {
+                synchronized (logTextArea) {
                     server.logProperty().setValue(server.logProperty().getValue() + " Request Handled by " + Thread.currentThread().getName() + '\n');
                 }
             } catch (Exception ex) {
-                synchronized (logTextArea)
-                {
+                synchronized (logTextArea) {
                     server.logProperty().setValue(server.logProperty().getValue() + " Error Processing Request " + '\n');
                 }
                 ex.printStackTrace();
-            }
-            finally {
+            } finally {
                 try {
                     objectOutputStream.close();
                     objectInputStream.close();
-                }catch (Exception ex) {ex.printStackTrace();}
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }
 
 
-
         private void sendResponse(ServerResponse response) {
-                try {
-                    objectOutputStream.writeObject(response);
-                    objectOutputStream.flush();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
+            try {
+                objectOutputStream.writeObject(response);
+                objectOutputStream.flush();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
         ServerResponse addEmailToReceiversInbox(Action actionRequest, ObjectInputStream inStream) {
@@ -266,36 +268,36 @@ public class ServerController {
         }
 
         ServerResponse sendAllEmails(Action actionRequest) {
-                try {
-                    Client requestClient = findClientByAddress(actionRequest.getSender());
+            try {
+                Client requestClient = findClientByAddress(actionRequest.getSender());
 
-                    //if the client has never been seen before, since he just logged on we add him to possible new clients
-                    if(requestClient == null) //only one time this could happen
-                    {
-                        server.addClient(new Client(actionRequest.getSender(), false));
-                        return ServerResponse.CLIENT_NOT_FOUND;
-                    }
-
-                    //get all emails of given client
-                    SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
-                    allEmails.addAll(requestClient.inboxProperty());
-                    allEmails.addAll(requestClient.trashProperty());
-                    allEmails.addAll(requestClient.sentProperty());
-                    allEmails.addAll(requestClient.draftsProperty());
-
-                    for (Email email : allEmails) {
-                        SerializableEmail serializableEmail = new SerializableEmail(email);
-                        objectOutputStream.writeObject(serializableEmail);
-                        objectOutputStream.flush();
-                    }
-                    server.add(actionRequest);
-
-                    return ServerResponse.ACTION_COMPLETED;
-
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    return ServerResponse.UNKNOWN_ERROR;
+                //if the client has never been seen before, since he just logged on we add him to possible new clients
+                if (requestClient == null) //only one time this could happen
+                {
+                    server.addClient(new Client(actionRequest.getSender(), false));
+                    return ServerResponse.CLIENT_NOT_FOUND;
                 }
+
+                //get all emails of given client
+                SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
+                allEmails.addAll(requestClient.inboxProperty());
+                allEmails.addAll(requestClient.trashProperty());
+                allEmails.addAll(requestClient.sentProperty());
+                allEmails.addAll(requestClient.draftsProperty());
+
+                for (Email email : allEmails) {
+                    SerializableEmail serializableEmail = new SerializableEmail(email);
+                    objectOutputStream.writeObject(serializableEmail);
+                    objectOutputStream.flush();
+                }
+                server.add(actionRequest);
+
+                return ServerResponse.ACTION_COMPLETED;
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return ServerResponse.UNKNOWN_ERROR;
+            }
         }
     }
 
@@ -308,5 +310,5 @@ public class ServerController {
             server.saveClientsToJSON();
         }
     }
-
 }
+

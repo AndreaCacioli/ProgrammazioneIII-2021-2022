@@ -9,18 +9,18 @@ import java.util.Objects;
 import java.util.Random;
 
 public class Email implements Comparable<Email> {
-    public static int serial = 0;
+    public static long serial = 0;
     private final StringProperty sender;
     private final StringProperty receiver;
     private final StringProperty subject;
     private final StringProperty body;
-    private int ID;
+    private long ID;
 
 
     private EmailState state;
     private final LocalDateTime dateTime;
 
-    public int getID() {
+    public long getID() {
         return ID;
     }
 
@@ -85,7 +85,7 @@ public class Email implements Comparable<Email> {
         ID = ++Email.serial;
     }
 
-    public Email(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime, int ID) {
+    public Email(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime, long ID) {
         this.sender = new SimpleStringProperty(sender);
         this.receiver = new SimpleStringProperty(receiver);
         this.subject = new SimpleStringProperty(subject);
@@ -189,7 +189,7 @@ public class Email implements Comparable<Email> {
 
     @Override
     public int compareTo(Email o) {
-        return getID() - o.getID();
+        return Long.compare(getID(),o.getID());
     }
 
     @Override

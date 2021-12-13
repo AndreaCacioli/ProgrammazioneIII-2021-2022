@@ -15,6 +15,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+import java.io.EOFException;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -38,16 +40,17 @@ public class NewMsgController {
     private Client client;
 
 
-
     private ClientController clientController;
 
     //Getters and Setters
     public Client getClient() {
         return client;
     }
+
     public void setClient(Client client) {
         this.client = client;
     }
+
     public void setClientController(ClientController clientController) {
         this.clientController = clientController;
     }
@@ -60,7 +63,6 @@ public class NewMsgController {
     }
 
 
-
     ///////////////////////////////////////
     //Methods that send ACTIONS to Server//
     @FXML
@@ -69,10 +71,9 @@ public class NewMsgController {
 
         AtomicBoolean everythingWentFine = new AtomicBoolean(false);
 
-
         Thread t1 = new Thread(() -> {
-                synchronized (clientController.reentrantLock) {
-                    try {
+            synchronized (clientController.reentrantLock) {
+                try {
                     clientController.getNewSocket();
                     clientController.sendActionToServer(new Action(client, client.newEmail.getReceiver().strip(), Operation.SEND_EMAIL));
                     clientController.sendEmailToServer(new SerializableEmail(client.newEmail));
@@ -80,26 +81,30 @@ public class NewMsgController {
                     if (response != ServerResponse.ACTION_COMPLETED) {
                         System.out.println("Something went wrong while sending an email");
                         //TODO fai sapere che qualcosa é andato storto
-                    }
-                    else //ACTION_COMPLETED
+                    } else //ACTION_COMPLETED
                     {
                         client.sentProperty().add(client.newEmail);
                         everythingWentFine.set(true);
                     }
                     client.newEmail = new Email();
-                } catch(Exception ex){
-                    ex.printStackTrace();
-                }finally{
+                } catch (IOException socketException) {
+                    clientController.setSocketFailure();
+                } catch (ClassNotFoundException e) {
+                    System.out.println("Could not read from stream");
+                } finally {
                     clientController.closeConnectionToServer();
                 }
             }
         });
 
         t1.start();
-        try{t1.join();}catch(Exception ex) {ex.printStackTrace();}
+        try {
+            t1.join();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
-        if(everythingWentFine.get())
-        {
+        if (everythingWentFine.get()) {
             textAreaMsg.textProperty().unbindBidirectional(client.newEmail.bodyProperty());
             textFieldTo.textProperty().unbindBidirectional(client.newEmail.receiverProperty());
             textFieldSubject.textProperty().unbindBidirectional(client.newEmail.subjectProperty());
@@ -128,29 +133,26 @@ public class NewMsgController {
         }
 
         new Thread(() -> {
-            synchronized (clientController.reentrantLock)
-            {
+            synchronized (clientController.reentrantLock) {
                 try {
                     clientController.getNewSocket();
                     clientController.sendActionToServer(new Action(client, null, Operation.NEW_DRAFT));
                     clientController.sendEmailToServer(new SerializableEmail(client.newEmail));
                     ServerResponse response = clientController.waitForResponse();
-                    if(response == ServerResponse.ACTION_COMPLETED)
-                    {
+                    if (response == ServerResponse.ACTION_COMPLETED) {
                         client.draftsProperty().add(client.newEmail);
-                    }
-                    else
-                    {
+                    } else {
                         //TODO fai sapere che qualcosa é andato storto
                     }
                     client.newEmail = new Email();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }finally {
+                } catch (IOException socketException) {
+                    clientController.setSocketFailure();
+                } catch (ClassNotFoundException e) {
+                    System.out.println("Could not read from stream");
+                } finally {
                     clientController.closeConnectionToServer();
                 }
             }
-
         }).start();
 
 
