@@ -1,6 +1,7 @@
 package com.progiii.mailclientserver.client.model;
 
 import com.progiii.mailclientserver.utils.GravatarRequests;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -89,9 +90,26 @@ public class Client {
     }
 
     public void emptySelf() {
-        inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
-        sent = new SimpleListProperty<>(FXCollections.observableArrayList());
-        drafts = new SimpleListProperty<>(FXCollections.observableArrayList());
-        trash = new SimpleListProperty<>(FXCollections.observableArrayList());
+        //TODO check if it works
+        Platform.runLater(() -> {
+            inbox.setValue(FXCollections.observableArrayList());
+            sent.setValue(FXCollections.observableArrayList());
+            drafts.setValue(FXCollections.observableArrayList());
+            trash.setValue(FXCollections.observableArrayList());
+        });
+    }
+
+    public long getLargestID()
+    {
+        long max = 0;
+        SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
+        allEmails.addAll(inboxProperty());
+        allEmails.addAll(sentProperty());
+        allEmails.addAll(draftsProperty());
+        allEmails.addAll(trashProperty());
+        for (Email email : allEmails) {
+            if (email.getID() > max) max = email.getID();
+        }
+        return max;
     }
 }

@@ -49,7 +49,7 @@ public class Server {
         clients = new ArrayList<>();
         actions = new ArrayList<>();
         log = new SimpleStringProperty("");
-        readFromJSonClientsFile();
+        //readFromJSonClientsFile();
     }
 
     public static EmailState stringToEmailState(String s) {

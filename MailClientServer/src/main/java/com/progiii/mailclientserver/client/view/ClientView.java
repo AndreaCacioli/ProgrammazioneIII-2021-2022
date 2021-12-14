@@ -36,7 +36,7 @@ public class ClientView extends Application {
 
 
         newStage.setOnShown((event) -> controller1.bindEverything());
-        newStage.setOnCloseRequest((windowEvent) -> controller1.onSendToDraftsButtonClicked(windowEvent));
+        //newStage.setOnCloseRequest((windowEvent) -> controller1.onSendToDraftsButtonClicked(windowEvent));
         newStage.setScene(scene1);
         newStage.setTitle("New Email");
         controller.setStage(newStage);

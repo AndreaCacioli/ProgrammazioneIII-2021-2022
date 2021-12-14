@@ -123,8 +123,7 @@ public class ServerController {
         server.setRunning(false);
         executorService.shutdown();
         scheduledExecutorService.shutdown();
-        server.saveClientsToJSON(); ////////////////
-        new Thread(new SaveAllTask()).start();
+        server.saveClientsToJSON();
         try {
             serverSocket.close();
         } catch (IOException ioException) {
@@ -192,7 +191,7 @@ public class ServerController {
                 } else if (actionRequest.getOperation() == Operation.GET_ALL_EMAILS) {
                     //The only void method because it sends the response before sending all the emails
                     sendAllEmails(actionRequest);
-                    server.add(actionRequest);
+                    //server.add(actionRequest);
                 }
                 synchronized (logTextArea) {
                     server.logProperty().setValue(server.logProperty().getValue() + " Request Handled by " + Thread.currentThread().getName() + '\n');
@@ -235,6 +234,7 @@ public class ServerController {
                 Email inboxEmail = sentEmail.clone();
                 inboxEmail.setState(EmailState.RECEIVED);
 
+
                 //We get the clients to operate on
                 Client sender = findClientByAddress(actionRequest.getSender());
                 Client receiver = findClientByAddress(actionRequest.getReceiver());
@@ -242,7 +242,9 @@ public class ServerController {
                 //If receiver is found
                 if (receiver != null) {
                     server.add(actionRequest);
+                    sentEmail.setID(receiver.getLargestID() + 1);
                     sender.sentProperty().add(sentEmail);
+                    inboxEmail.setID(receiver.getLargestID() + 1);
                     receiver.inboxProperty().add(inboxEmail);
                     return ServerResponse.ACTION_COMPLETED;
                 } else {
@@ -258,6 +260,7 @@ public class ServerController {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email emailToBeDrafted = new Email(serializableEmail);
+                emailToBeDrafted.setState(EmailState.DRAFTED);
 
                 //We get the client who asked for a deletion
                 Client sender = findClientByAddress(actionRequest.getSender());
@@ -273,6 +276,7 @@ public class ServerController {
                 }
 
                 //Otherwise we add it to the list
+                emailToBeDrafted.setID(sender.getLargestID() + 1);
                 sender.trashProperty().add(emailToBeDrafted);
                 return ServerResponse.ACTION_COMPLETED;
             } catch (Exception ex) {
@@ -285,6 +289,7 @@ public class ServerController {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email emailToBeDeleted = new Email(serializableEmail);
+                emailToBeDeleted.setState(EmailState.TRASHED);
 
                 //We get the client who asked for a deletion
                 Client sender = findClientByAddress(actionRequest.getSender());

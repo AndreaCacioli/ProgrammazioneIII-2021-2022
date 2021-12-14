@@ -59,10 +59,10 @@ public class ClientController {
     private Client client;
     private Stage newMessageStage;
     private Socket socket;
-    private ScheduledExecutorService scheduledExServConn;
     private ScheduledExecutorService scheduledExEmailDownloader;
     protected final ReentrantLock reentrantLock = new ReentrantLock();
     ObjectOutputStream objectOutputStream;
+    ObjectInputStream objectInputStream;
 
     public void setStage(Stage newMessageStage) {
         this.newMessageStage = newMessageStage;
@@ -126,7 +126,7 @@ public class ClientController {
 
     @FXML
     private void showInbox() {
-        client.selectedEmail = new Email();
+        client.selectedEmail = new Email(client.getLargestID() + 1);
         if (client.inboxProperty().size() > 0) client.selectedEmail = client.inboxProperty().get(0);
         emailListView.itemsProperty().bind(client.inboxProperty());
         bindMailToView(client.selectedEmail);
@@ -134,7 +134,7 @@ public class ClientController {
 
     @FXML
     private void showSent() {
-        client.selectedEmail = new Email();
+        client.selectedEmail = new Email(client.getLargestID() + 1);
         if (client.sentProperty().size() > 0) client.selectedEmail = client.sentProperty().get(0);
         emailListView.itemsProperty().bind(client.sentProperty());
         bindMailToView(client.selectedEmail);
@@ -142,7 +142,7 @@ public class ClientController {
 
     @FXML
     private void showDrafts() {
-        client.selectedEmail = new Email();
+        client.selectedEmail = new Email(client.getLargestID() + 1);
         if (client.draftsProperty().size() > 0) client.selectedEmail = client.draftsProperty().get(0);
         emailListView.itemsProperty().bind(client.draftsProperty());
         bindMailToView(client.selectedEmail);
@@ -150,7 +150,7 @@ public class ClientController {
 
     @FXML
     private void showTrash() {
-        client.selectedEmail = new Email();
+        client.selectedEmail = new Email(client.getLargestID() + 1);
         if (client.trashProperty().size() > 0) client.selectedEmail = client.trashProperty().get(0);
         emailListView.itemsProperty().bind(client.trashProperty());
         bindMailToView(client.selectedEmail);
@@ -183,7 +183,7 @@ public class ClientController {
     @FXML
     private void onNewMailClicked() {
         try {
-            client.newEmail = new Email();
+            client.newEmail = new Email(client.getLargestID() + 1);
             client.newEmail.setSender(client.addressProperty().get());
             newMessageStage.show();
         } catch (Exception e) {
@@ -215,6 +215,7 @@ public class ClientController {
     }
 
     private void resetSelectedEmail() {
+        client.selectedEmail = new Email(client.getLargestID() + 1);
         fromTextField.textProperty().unbind();
         fromTextField.setText("");
         toTextField.textProperty().unbind();
@@ -233,18 +234,18 @@ public class ClientController {
     //Common method to send an action
     //This should be in critical section
     public void sendActionToServer(Action action) {
+        if (objectOutputStream == null) return;
         try {
             objectOutputStream.writeObject(action);
             objectOutputStream.flush();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Socket is closed");
         }
     }
 
     //This should be in critical section
     public ServerResponse waitForResponse() throws IOException, ClassNotFoundException {
         ServerResponse response = ServerResponse.UNKNOWN_ERROR;
-        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
         response = (ServerResponse) objectInputStream.readObject();
         System.out.println("Response: " + response);
         return response;
@@ -252,6 +253,7 @@ public class ClientController {
 
     //This should be in critical section
     public void sendEmailToServer(SerializableEmail serializableEmail) {
+        if (objectOutputStream == null) return;
         try {
             objectOutputStream.writeObject(serializableEmail);
             objectOutputStream.flush();
@@ -282,36 +284,8 @@ public class ClientController {
                     }
 
                     if (response == ServerResponse.ACTION_COMPLETED) {
-                        switch (client.selectedEmail.getState()) {
-                            case RECEIVED -> {
-                                int indexOfEmail = client.inboxProperty().indexOf(client.selectedEmail);
-                                loadAllFromServer();
-                                resetSelectedEmail();
-                                showNextEmail(indexOfEmail);
-                            }
-
-                            case SENT -> {
-                                int indexOfEmail = client.sentProperty().indexOf(client.selectedEmail);
-                                loadAllFromServer();
-                                resetSelectedEmail();
-                                showNextEmail(indexOfEmail);
-                            }
-
-                            case DRAFTED -> {
-                                int indexOfEmail = client.draftsProperty().indexOf(client.selectedEmail);
-                                loadAllFromServer();
-                                resetSelectedEmail();
-                                showNextEmail(indexOfEmail);
-                            }
-
-                            case TRASHED -> {
-                                int indexOfEmail = client.trashProperty().indexOf(client.selectedEmail);
-                                loadAllFromServer();
-                                resetSelectedEmail();
-                                showNextEmail(indexOfEmail);
-                            }
-
-                        }
+                        resetSelectedEmail();
+                        loadAllFromServer();
                     } else {
                         Platform.runLater(() -> {
                             Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while deleting an email");
@@ -324,7 +298,7 @@ public class ClientController {
     }
 
     @FXML
-    private void loadAllFromServer() {
+    protected void loadAllFromServer() {
         new Thread(() -> {
             synchronized (reentrantLock) {
                 try {
@@ -332,6 +306,7 @@ public class ClientController {
                     setSocketSuccess();
                 } catch (IOException e) {
                     setSocketFailure();
+                    return;
                 }
                 Action request = new Action(client, null, Operation.GET_ALL_EMAILS);
                 sendActionToServer(request);
@@ -339,37 +314,42 @@ public class ClientController {
                 try {
                     response = waitForResponse();
                 } catch (Exception ex) {
-                    System.out.println("Could not read the response");
-                    return;
+                    System.out.println("no response in loadAllFromServer");
                 }
+
 
                 if (response == ServerResponse.ACTION_COMPLETED) {
                     client.emptySelf();
                 } else return;
 
                 try {
-                    ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-                    SerializableEmail serializableEmail;
-                    Object object;
-                    while ((object = objectInputStream.readObject()) != null) {
-                        serializableEmail = (SerializableEmail) object;
+                    SerializableEmail serializableEmail = null;
+                    while ((serializableEmail = (SerializableEmail) objectInputStream.readObject()) != null) {
                         Email email = new Email(serializableEmail);
                         switch (email.getState()) {
                             case RECEIVED -> {
                                 if (!client.contains(client.inboxProperty(), email))
-                                    client.inboxProperty().add(email);
+                                    Platform.runLater(() -> {
+                                        client.inboxProperty().add(email);
+                                    });
                             }
                             case SENT -> {
                                 if (!client.contains(client.sentProperty(), email))
-                                    client.sentProperty().add(email);
+                                    Platform.runLater(() -> {
+                                        client.sentProperty().add(email);
+                                    });
                             }
                             case DRAFTED -> {
                                 if (!client.contains(client.draftsProperty(), email))
-                                    client.draftsProperty().add(email);
+                                    Platform.runLater(() -> {
+                                        client.draftsProperty().add(email);
+                                    });
                             }
                             case TRASHED -> {
                                 if (!client.contains(client.trashProperty(), email))
-                                    client.trashProperty().add(email);
+                                    Platform.runLater(() -> {
+                                        client.trashProperty().add(email);
+                                    });
                             }
                         }
                     }
@@ -378,20 +358,10 @@ public class ClientController {
                 } catch (ClassNotFoundException e) {
                     System.out.println("Could not read from stream");
                 } catch (IOException ioException) {
-                    System.out.println("Error reading Emails");
-                    ioException.printStackTrace();
+                    System.out.println("Error reading Emails in loadAllFromServer");
                 } finally {
                     closeConnectionToServer();
                 }
-            }
-
-            SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
-            allEmails.addAll(client.inboxProperty());
-            allEmails.addAll(client.sentProperty());
-            allEmails.addAll(client.draftsProperty());
-            allEmails.addAll(client.trashProperty());
-            for (Email email : allEmails) {
-                if (email.getID() > Email.serial) Email.serial = email.getID();
             }
         }).start();
     }
@@ -401,10 +371,10 @@ public class ClientController {
     protected void getNewSocket() throws IOException {
         socket = new Socket(InetAddress.getLocalHost(), 6969);
         objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+        objectInputStream = new ObjectInputStream(socket.getInputStream());
     }
 
     protected void setSocketSuccess() {
-        startPeriodicEmailDownloader();
         System.out.println("Connection To Server Successes");
         Platform.runLater(() -> {
             client.statusProperty().setValue("Connected");
@@ -413,18 +383,19 @@ public class ClientController {
     }
 
     protected void setSocketFailure() {
+        System.out.println("Connection To Server Failure");
         Platform.runLater(() -> {
-            System.out.println("Connection To Server Failure");
             client.statusProperty().setValue("Trying to connect to Server...");
             restartConnButton.setVisible(true);
         });
     }
 
     protected void closeConnectionToServer() {
-        if (client.statusProperty().getValue().compareTo("Connected") == 0) {
+        if (socket != null && objectInputStream != null && objectOutputStream != null) {
             try {
                 socket.close();
                 objectOutputStream.close();
+                objectInputStream.close();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

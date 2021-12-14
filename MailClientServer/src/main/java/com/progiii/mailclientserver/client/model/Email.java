@@ -9,7 +9,9 @@ import java.util.Objects;
 import java.util.Random;
 
 public class Email implements Comparable<Email> {
-    public static long serial = 0;
+
+    //We Identify an email by its sender and ID values together
+
     private final StringProperty sender;
     private final StringProperty receiver;
     private final StringProperty subject;
@@ -22,6 +24,10 @@ public class Email implements Comparable<Email> {
 
     public long getID() {
         return ID;
+    }
+
+    public void setID(long id) {
+        ID = id;
     }
 
     public String getSender() {
@@ -65,24 +71,14 @@ public class Email implements Comparable<Email> {
     public void setState(EmailState state) {this.state = state;}
 
 
-    public Email(String sender, String receiver, String subject, String body, EmailState state) {
+    public Email(String sender, String receiver, String subject, String body, EmailState state, long ID) {
         this.sender = new SimpleStringProperty(sender);
         this.receiver = new SimpleStringProperty(receiver);
         this.subject = new SimpleStringProperty(subject);
         this.body = new SimpleStringProperty(body);
         this.state = state;
         dateTime = LocalDateTime.now();
-        ID = ++Email.serial;
-    }
-
-    public Email(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime localDateTime) {
-        this.sender = new SimpleStringProperty(sender);
-        this.receiver = new SimpleStringProperty(receiver);
-        this.subject = new SimpleStringProperty(subject);
-        this.body = new SimpleStringProperty(body);
-        this.state = state;
-        dateTime = localDateTime;
-        ID = ++Email.serial;
+        this.ID = ID;
     }
 
     public Email(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime, long ID) {
@@ -106,14 +102,14 @@ public class Email implements Comparable<Email> {
         ID = email.getID();
     }
 
-    public Email() {
+    public Email(long ID) {
         this.sender = new SimpleStringProperty("");
         this.receiver = new SimpleStringProperty("");
         this.subject = new SimpleStringProperty("");
         this.body = new SimpleStringProperty("");
         this.state = EmailState.DRAFTED;
         dateTime = LocalDateTime.now();
-        ID = ++Email.serial;
+        this.ID = ID;
     }
 
     @Override
@@ -163,7 +159,9 @@ public class Email implements Comparable<Email> {
                 possibleUsers[r.nextInt(possibleUsers.length)],
                 possibleSubjects[r.nextInt(possibleSubjects.length)],
                 possibleBodies[r.nextInt(possibleBodies.length)],
-                state
+                state,
+                -1
+                //Check the -1: Unstable
         );
 
     }
@@ -184,11 +182,14 @@ public class Email implements Comparable<Email> {
 
     public Email clone()
     {
-        return new Email(this.getSender(),this.getReceiver(), this.getSubject(),this.getBody(),this.getState(),this.getDateTime());
+        return new Email(this.getSender(),this.getReceiver(), this.getSubject(),this.getBody(),this.getState(),this.getDateTime(),this.getID());
     }
 
     @Override
     public int compareTo(Email o) {
+        //Strings have priority
+        if (sender.getValue().compareTo(o.getSender()) != 0) return sender.getValue().compareTo(o.getSender());
+        //if they are equal, then we move to the IDs
         return Long.compare(getID(),o.getID());
     }
 
@@ -197,7 +198,7 @@ public class Email implements Comparable<Email> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Email email = (Email) o;
-        return ID == email.ID;
+        return ID == email.ID && (sender.getValue().compareTo(email.getSender()) == 0);
     }
 
     @Override

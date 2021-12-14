@@ -10,7 +10,6 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -85,12 +84,7 @@ public class NewMsgController {
                     clientController.sendEmailToServer(new SerializableEmail(client.newEmail));
                     ServerResponse response = clientController.waitForResponse();
                     if (response == ServerResponse.ACTION_COMPLETED) {
-
-                        if (action.getOperation() == Operation.NEW_DRAFT) client.draftsProperty().add(client.newEmail);
-                        else if (action.getOperation() == Operation.SEND_EMAIL)
-                            client.sentProperty().add(client.newEmail);
-
-                        everythingWentFine.set(true);
+                        clientController.loadAllFromServer();
                     } else {
                         Platform.runLater(() -> {
                             String s = action.getOperation() == Operation.NEW_DRAFT ? "drafting " : "sending ";
@@ -98,7 +92,7 @@ public class NewMsgController {
                             a.show();
                         });
                     }
-                    client.newEmail = new Email();
+                    client.newEmail = new Email(client.getLargestID() + 1);
                 } catch (IOException socketException) {
                     clientController.setSocketFailure();
                 } catch (ClassNotFoundException e) {
@@ -121,8 +115,8 @@ public class NewMsgController {
             textFieldTo.textProperty().unbindBidirectional(client.newEmail.receiverProperty());
             textFieldSubject.textProperty().unbindBidirectional(client.newEmail.subjectProperty());
 
-            Node source = (Node) event.getSource();
-            Stage stage = (Stage) source.getScene().getWindow();
+            //TODO fallo chiudereeeeeeee
+            Stage stage = (Stage) draftsNewMsgButton.getScene().getWindow();
             stage.close();
         }
     }
