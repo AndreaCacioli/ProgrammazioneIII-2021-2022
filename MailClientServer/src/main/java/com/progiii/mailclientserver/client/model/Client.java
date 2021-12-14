@@ -10,10 +10,10 @@ import javafx.scene.image.Image;
 
 public class Client {
     private final SimpleStringProperty address;
-    private final SimpleListProperty<Email> inbox;
-    private final SimpleListProperty<Email> sent;
-    private final SimpleListProperty<Email> drafts;
-    private final SimpleListProperty<Email> trash;
+    private SimpleListProperty<Email> inbox;
+    private SimpleListProperty<Email> sent;
+    private SimpleListProperty<Email> drafts;
+    private SimpleListProperty<Email> trash;
     private SimpleObjectProperty<Image> image;
     private final SimpleStringProperty status;
 
@@ -69,5 +69,29 @@ public class Client {
                 return true;
         }
         return false;
+    }
+
+    public Email findEmailById(SimpleListProperty<Email> emailList, long id) {
+        for (Email e : emailList) {
+            if (e.getID() == id)
+                return e;
+        }
+        return null;
+    }
+
+    public SimpleListProperty<Email> whereIs(Email email) {
+        SimpleListProperty<Email> ret = null;
+        if (inboxProperty().contains(email)) ret = inboxProperty();
+        if (draftsProperty().contains(email)) ret = draftsProperty();
+        if (sentProperty().contains(email)) ret = sentProperty();
+        if (trashProperty().contains(email)) ret = trashProperty();
+        return ret;
+    }
+
+    public void emptySelf() {
+        inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
+        sent = new SimpleListProperty<>(FXCollections.observableArrayList());
+        drafts = new SimpleListProperty<>(FXCollections.observableArrayList());
+        trash = new SimpleListProperty<>(FXCollections.observableArrayList());
     }
 }

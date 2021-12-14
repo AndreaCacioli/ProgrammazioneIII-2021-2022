@@ -12,9 +12,7 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.AnchorPane;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -179,18 +177,22 @@ public class ServerController {
                 if (actionRequest.getOperation() == Operation.SEND_EMAIL) {
                     response = addEmailToReceiversInbox(actionRequest, objectInputStream);
                     sendResponse(response);
+                    server.add(actionRequest);
                     server.saveClientsToJSON();
                 } else if (actionRequest.getOperation() == Operation.NEW_DRAFT) {
                     response = addEmailToSendersDrafts(actionRequest, objectInputStream);
                     sendResponse(response);
+                    server.add(actionRequest);
                     server.saveClientsToJSON();
                 } else if (actionRequest.getOperation() == Operation.DELETE_EMAIL) {
                     response = deleteEmail(actionRequest, objectInputStream);
                     sendResponse(response);
+                    server.add(actionRequest);
                     server.saveClientsToJSON();
                 } else if (actionRequest.getOperation() == Operation.GET_ALL_EMAILS) {
-                    response = sendAllEmails(actionRequest);
-                    sendResponse(response);
+                    //The only void method because it sends the response before sending all the emails
+                    sendAllEmails(actionRequest);
+                    server.add(actionRequest);
                 }
                 synchronized (logTextArea) {
                     server.logProperty().setValue(server.logProperty().getValue() + " Request Handled by " + Thread.currentThread().getName() + '\n');
@@ -214,7 +216,8 @@ public class ServerController {
          * Method used to send
          * a response to Client using
          * socket outputStream
-         * @param response
+         *
+         * @param response will be sent to Client
          */
         private void sendResponse(ServerResponse response) {
             try {
@@ -231,8 +234,12 @@ public class ServerController {
                 Email sentEmail = new Email(serializableEmail);
                 Email inboxEmail = sentEmail.clone();
                 inboxEmail.setState(EmailState.RECEIVED);
+
+                //We get the clients to operate on
                 Client sender = findClientByAddress(actionRequest.getSender());
                 Client receiver = findClientByAddress(actionRequest.getReceiver());
+
+                //If receiver is found
                 if (receiver != null) {
                     server.add(actionRequest);
                     sender.sentProperty().add(sentEmail);
@@ -250,9 +257,23 @@ public class ServerController {
         ServerResponse addEmailToSendersDrafts(Action actionRequest, ObjectInputStream inStream) {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
-                Email draftedEmail = new Email(actionRequest.getSender().strip(), actionRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.DRAFTED, serializableEmail.getDate());
+                Email emailToBeDrafted = new Email(serializableEmail);
+
+                //We get the client who asked for a deletion
                 Client sender = findClientByAddress(actionRequest.getSender());
-                sender.trashProperty().add(draftedEmail);
+                if (sender == null) return ServerResponse.CLIENT_NOT_FOUND;
+
+                //We check if the client had already drafted that email
+                if (sender.contains(sender.draftsProperty(), emailToBeDrafted)) {
+                    //In this case it could be just a modification of the email, so we update it to the new one
+                    Email emailToBeModified = sender.findEmailById(sender.draftsProperty(), emailToBeDrafted.getID());
+                    sender.draftsProperty().remove(emailToBeModified);
+                    sender.draftsProperty().add(emailToBeDrafted);
+                    return ServerResponse.ACTION_COMPLETED;
+                }
+
+                //Otherwise we add it to the list
+                sender.trashProperty().add(emailToBeDrafted);
                 return ServerResponse.ACTION_COMPLETED;
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -262,48 +283,63 @@ public class ServerController {
 
         ServerResponse deleteEmail(Action actionRequest, ObjectInputStream inStream) {
             try {
-                //TODO find where the email was and based on that delete it permanently or move it to trash
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
-                Email deletedEmail = new Email(actionRequest.getSender().strip(), actionRequest.getReceiver().strip(), serializableEmail.getSubject(), serializableEmail.getBody(), EmailState.TRASHED, serializableEmail.getDate());
+                Email emailToBeDeleted = new Email(serializableEmail);
+
+                //We get the client who asked for a deletion
                 Client sender = findClientByAddress(actionRequest.getSender());
-                sender.trashProperty().add(deletedEmail);
-                return ServerResponse.ACTION_COMPLETED;
+                if (sender == null) return ServerResponse.CLIENT_NOT_FOUND;
+
+                //We find where the email is for that client
+                SimpleListProperty<Email> list = sender.whereIs(emailToBeDeleted);
+                if (list == null) return ServerResponse.EMAIL_NOT_FOUND;
+
+                //If it is already in the trash we just delete it permanently, otherwise we move it to trash
+                if (list == sender.trashProperty()) {
+                    list.remove(emailToBeDeleted);
+                    return ServerResponse.ACTION_COMPLETED;
+                } else {
+                    list.remove(emailToBeDeleted);
+                    sender.trashProperty().add(emailToBeDeleted);
+                    return ServerResponse.ACTION_COMPLETED;
+                }
+
             } catch (Exception ex) {
                 ex.printStackTrace();
                 return ServerResponse.UNKNOWN_ERROR;
             }
         }
 
-        ServerResponse sendAllEmails(Action actionRequest) {
+        void sendAllEmails(Action actionRequest) {
             try {
                 Client requestClient = findClientByAddress(actionRequest.getSender());
 
-                //if the client has never been seen before, since he just logged on we add him to possible new clients
+                //If the client has never been seen before, since he just logged on we add him to possible new clients
                 if (requestClient == null) //only one time this could happen
                 {
                     server.addClient(new Client(actionRequest.getSender(), false));
-                    return ServerResponse.CLIENT_NOT_FOUND;
+                    sendResponse(ServerResponse.CLIENT_NOT_FOUND);
+                    return;
                 }
 
-                //get all emails of given client
+                //Get all emails of given client
                 SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
                 allEmails.addAll(requestClient.inboxProperty());
                 allEmails.addAll(requestClient.trashProperty());
                 allEmails.addAll(requestClient.sentProperty());
                 allEmails.addAll(requestClient.draftsProperty());
 
+                sendResponse(ServerResponse.ACTION_COMPLETED);
+
+                //Send all of them through the socket
                 for (Email email : allEmails) {
                     SerializableEmail serializableEmail = new SerializableEmail(email);
                     objectOutputStream.writeObject(serializableEmail);
                     objectOutputStream.flush();
                 }
-                server.add(actionRequest);
-
-                return ServerResponse.ACTION_COMPLETED;
 
             } catch (Exception ex) {
                 ex.printStackTrace();
-                return ServerResponse.UNKNOWN_ERROR;
             }
         }
     }

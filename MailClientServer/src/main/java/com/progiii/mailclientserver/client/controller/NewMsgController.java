@@ -39,11 +39,8 @@ public class NewMsgController {
     private Button draftsNewMsgButton;
 
     private Client client;
-
-
     private ClientController clientController;
 
-    //Getters and Setters
     public Client getClient() {
         return client;
     }
@@ -68,26 +65,38 @@ public class NewMsgController {
     //Methods that send ACTIONS to Server//
     @FXML
     public void onSendButtonClicked(ActionEvent event) {
-        //TODO verifica che funzioni perfettamente
+        doNewMailOperation(event, new Action(client, client.newEmail.getReceiver().strip(), Operation.SEND_EMAIL));
+    }
 
+    @FXML
+    public void onSendToDraftsButtonClicked(Event event) {
+        doNewMailOperation(event, new Action(client, null, Operation.NEW_DRAFT));
+    }
+
+    private void doNewMailOperation(Event event, Action action) {
         AtomicBoolean everythingWentFine = new AtomicBoolean(false);
 
         Thread t1 = new Thread(() -> {
             synchronized (clientController.reentrantLock) {
                 try {
                     clientController.getNewSocket();
-                    clientController.sendActionToServer(new Action(client, client.newEmail.getReceiver().strip(), Operation.SEND_EMAIL));
+                    clientController.setSocketSuccess();
+                    clientController.sendActionToServer(action);
                     clientController.sendEmailToServer(new SerializableEmail(client.newEmail));
                     ServerResponse response = clientController.waitForResponse();
-                    if (response != ServerResponse.ACTION_COMPLETED) {
+                    if (response == ServerResponse.ACTION_COMPLETED) {
+
+                        if (action.getOperation() == Operation.NEW_DRAFT) client.draftsProperty().add(client.newEmail);
+                        else if (action.getOperation() == Operation.SEND_EMAIL)
+                            client.sentProperty().add(client.newEmail);
+
+                        everythingWentFine.set(true);
+                    } else {
                         Platform.runLater(() -> {
-                            Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while sending an email");
+                            String s = action.getOperation() == Operation.NEW_DRAFT ? "drafting " : "sending ";
+                            Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while " + s + "an email");
                             a.show();
                         });
-                    } else //ACTION_COMPLETED
-                    {
-                        client.sentProperty().add(client.newEmail);
-                        everythingWentFine.set(true);
                     }
                     client.newEmail = new Email();
                 } catch (IOException socketException) {
@@ -116,51 +125,6 @@ public class NewMsgController {
             Stage stage = (Stage) source.getScene().getWindow();
             stage.close();
         }
-
     }
 
-    @FXML
-    public void onSendToDraftsButtonClicked(Event event) {
-        if (client.draftsProperty().contains(client.newEmail)) {
-            //TODO send action for a change
-            return;
-        }
-
-        textAreaMsg.textProperty().unbindBidirectional(client.newEmail.bodyProperty());
-        textFieldTo.textProperty().unbindBidirectional(client.newEmail.receiverProperty());
-        textFieldSubject.textProperty().unbindBidirectional(client.newEmail.subjectProperty());
-
-        if (event instanceof ActionEvent) {
-            Stage stage = (Stage) draftsNewMsgButton.getScene().getWindow();
-            stage.close();
-        }
-
-        new Thread(() -> {
-            synchronized (clientController.reentrantLock) {
-                try {
-                    clientController.getNewSocket();
-                    clientController.sendActionToServer(new Action(client, null, Operation.NEW_DRAFT));
-                    clientController.sendEmailToServer(new SerializableEmail(client.newEmail));
-                    ServerResponse response = clientController.waitForResponse();
-                    if (response == ServerResponse.ACTION_COMPLETED) {
-                        client.draftsProperty().add(client.newEmail);
-                    } else {
-                        Platform.runLater(() -> {
-                            Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while drafting an email");
-                            a.show();
-                        });
-                    }
-                    client.newEmail = new Email();
-                } catch (IOException socketException) {
-                    clientController.setSocketFailure();
-                } catch (ClassNotFoundException e) {
-                    System.out.println("Could not read from stream");
-                } finally {
-                    clientController.closeConnectionToServer();
-                }
-            }
-        }).start();
-
-
-    }
 }

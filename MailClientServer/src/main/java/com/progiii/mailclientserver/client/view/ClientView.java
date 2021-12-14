@@ -23,6 +23,8 @@ public class ClientView extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 1000, 550);
         ClientController controller = fxmlLoader.getController();
         controller.setClient(client);
+        controller.setStatusBiding();
+        controller.setGravatarBindings();
 
         FXMLLoader fxmlLoader1 = new FXMLLoader(getClass().getResource("newMsgView.fxml"));
         Parent v = fxmlLoader1.load();
@@ -32,25 +34,19 @@ public class ClientView extends Application {
         Scene scene1 = new Scene(v, 600, 400);
         Stage newStage = new Stage();
 
-        stage.setOnCloseRequest((windowEvent -> controller.shutdownPeriodicEmailDownloader()));
-        stage.setOnShown((event) -> controller.openConnectionToServer());
+
         newStage.setOnShown((event) -> controller1.bindEverything());
         newStage.setOnCloseRequest((windowEvent) -> controller1.onSendToDraftsButtonClicked(windowEvent));
         newStage.setScene(scene1);
         newStage.setTitle("New Email");
-
-
         controller.setStage(newStage);
-        controller.setNewMsgController(controller1);
 
+        stage.setOnShown((event) -> controller.startPeriodicEmailDownloader());
+        stage.setOnCloseRequest((windowEvent -> controller.shutdownPeriodicEmailDownloader()));
         stage.setTitle("Mail Sender - 9000");
         stage.setScene(scene);
         scene.getStylesheets().add(Objects.requireNonNull(ClientView.class.getResource("appStyle.css")).toExternalForm());
         stage.show();
-
-        controller.setStatusBiding();
-        controller.setGravatarBindings();
-
     }
 
     public static void main(String[] args) {

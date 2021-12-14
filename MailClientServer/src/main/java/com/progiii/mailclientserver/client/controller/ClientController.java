@@ -10,7 +10,6 @@ import com.progiii.mailclientserver.utils.ServerResponse;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -60,15 +59,10 @@ public class ClientController {
     private Client client;
     private Stage newMessageStage;
     private Socket socket;
-    private NewMsgController newMsgController;
     private ScheduledExecutorService scheduledExServConn;
     private ScheduledExecutorService scheduledExEmailDownloader;
     protected final ReentrantLock reentrantLock = new ReentrantLock();
     ObjectOutputStream objectOutputStream;
-
-    public void setNewMsgController(NewMsgController newMsgController) {
-        this.newMsgController = newMsgController;
-    }
 
     public void setStage(Stage newMessageStage) {
         this.newMessageStage = newMessageStage;
@@ -87,7 +81,7 @@ public class ClientController {
     }
 
     /**
-     * Binding elements that do not change during the life of the app
+     * Binding of Gravatar Image
      */
     public void setGravatarBindings() {
         try {
@@ -101,9 +95,11 @@ public class ClientController {
         } catch (Exception ex) {
             System.out.println("---NO Internet Connection---");
         }
-
     }
 
+    /**
+     * Binding of left-bottom Status label of GUI
+     */
     public void setStatusBiding() {
         this.getStatusLabel().textProperty().bind(client.statusProperty());
     }
@@ -130,7 +126,6 @@ public class ClientController {
 
     @FXML
     private void showInbox() {
-        //TODO: fetch all mails and show them in the listView
         client.selectedEmail = new Email();
         if (client.inboxProperty().size() > 0) client.selectedEmail = client.inboxProperty().get(0);
         emailListView.itemsProperty().bind(client.inboxProperty());
@@ -139,7 +134,6 @@ public class ClientController {
 
     @FXML
     private void showSent() {
-        //TODO: fetch all sent emails and show them in the listView
         client.selectedEmail = new Email();
         if (client.sentProperty().size() > 0) client.selectedEmail = client.sentProperty().get(0);
         emailListView.itemsProperty().bind(client.sentProperty());
@@ -148,7 +142,6 @@ public class ClientController {
 
     @FXML
     private void showDrafts() {
-        //TODO: fetch all drafts mails and show them in the listView
         client.selectedEmail = new Email();
         if (client.draftsProperty().size() > 0) client.selectedEmail = client.draftsProperty().get(0);
         emailListView.itemsProperty().bind(client.draftsProperty());
@@ -157,7 +150,6 @@ public class ClientController {
 
     @FXML
     private void showTrash() {
-        //TODO: fetch all trashed mails and show them in the listView
         client.selectedEmail = new Email();
         if (client.trashProperty().size() > 0) client.selectedEmail = client.trashProperty().get(0);
         emailListView.itemsProperty().bind(client.trashProperty());
@@ -250,6 +242,15 @@ public class ClientController {
     }
 
     //This should be in critical section
+    public ServerResponse waitForResponse() throws IOException, ClassNotFoundException {
+        ServerResponse response = ServerResponse.UNKNOWN_ERROR;
+        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+        response = (ServerResponse) objectInputStream.readObject();
+        System.out.println("Response: " + response);
+        return response;
+    }
+
+    //This should be in critical section
     public void sendEmailToServer(SerializableEmail serializableEmail) {
         try {
             objectOutputStream.writeObject(serializableEmail);
@@ -257,15 +258,6 @@ public class ClientController {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
-
-    //This should be in critical section
-    public ServerResponse waitForResponse() throws IOException, ClassNotFoundException {
-        ServerResponse response = ServerResponse.UNKNOWN_ERROR;
-        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-        response = (ServerResponse) objectInputStream.readObject();
-        System.out.println("Response: " + response);
-        return response;
     }
 
     @FXML
@@ -276,6 +268,7 @@ public class ClientController {
                 if (client.selectedEmail != null) {
                     try {
                         getNewSocket();
+                        setSocketSuccess();
                         sendActionToServer(new Action(client, null, Operation.DELETE_EMAIL));
                         SerializableEmail emailToBeDeleted = new SerializableEmail(client.selectedEmail);
                         sendEmailToServer(emailToBeDeleted);
@@ -290,70 +283,75 @@ public class ClientController {
 
                     if (response == ServerResponse.ACTION_COMPLETED) {
                         switch (client.selectedEmail.getState()) {
-                            case DRAFTED -> {
-                                int index = sendSelectedEmailToTrash(client.draftsProperty());
-                                showNextEmail(index);
+                            case RECEIVED -> {
+                                int indexOfEmail = client.inboxProperty().indexOf(client.selectedEmail);
+                                loadAllFromServer();
+                                resetSelectedEmail();
+                                showNextEmail(indexOfEmail);
                             }
 
                             case SENT -> {
-                                int index = sendSelectedEmailToTrash(client.sentProperty());
-                                showNextEmail(index);
+                                int indexOfEmail = client.sentProperty().indexOf(client.selectedEmail);
+                                loadAllFromServer();
+                                resetSelectedEmail();
+                                showNextEmail(indexOfEmail);
                             }
 
-                            case RECEIVED -> {
-                                int index = sendSelectedEmailToTrash(client.inboxProperty());
-                                showNextEmail(index);
+                            case DRAFTED -> {
+                                int indexOfEmail = client.draftsProperty().indexOf(client.selectedEmail);
+                                loadAllFromServer();
+                                resetSelectedEmail();
+                                showNextEmail(indexOfEmail);
                             }
 
                             case TRASHED -> {
-                                int index = sendSelectedEmailToTrash(client.trashProperty());
-                                showNextEmail(index);
+                                int indexOfEmail = client.trashProperty().indexOf(client.selectedEmail);
+                                loadAllFromServer();
+                                resetSelectedEmail();
+                                showNextEmail(indexOfEmail);
                             }
 
                         }
                     } else {
-                        //TODO fai sapere all'utente che é stato impossibile eseguire la richiesta con un popup
+                        Platform.runLater(() -> {
+                            Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while deleting an email");
+                            a.show();
+                        });
                     }
                 }
             }
         }).start();
     }
 
-    private int sendSelectedEmailToTrash(ObservableList<Email> list) {
-        int ret = list.indexOf(client.selectedEmail);
-
-        if (client.selectedEmail.getState() != EmailState.TRASHED) {
-            client.selectedEmail.setState(EmailState.TRASHED);
-            client.trashProperty().add(client.selectedEmail);
-        }
-        list.remove(client.selectedEmail);
-        resetSelectedEmail();
-        return ret;
-    }
-
+    @FXML
     private void loadAllFromServer() {
         new Thread(() -> {
             synchronized (reentrantLock) {
                 try {
                     getNewSocket();
-                    Action request = new Action(client, null, Operation.GET_ALL_EMAILS);
-                    sendActionToServer(request);
+                    setSocketSuccess();
+                } catch (IOException e) {
+                    setSocketFailure();
+                }
+                Action request = new Action(client, null, Operation.GET_ALL_EMAILS);
+                sendActionToServer(request);
+                ServerResponse response = null;
+                try {
+                    response = waitForResponse();
+                } catch (Exception ex) {
+                    System.out.println("Could not read the response");
+                    return;
+                }
 
+                if (response == ServerResponse.ACTION_COMPLETED) {
+                    client.emptySelf();
+                } else return;
+
+                try {
                     ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                     SerializableEmail serializableEmail;
                     Object object;
                     while ((object = objectInputStream.readObject()) != null) {
-                        if (object instanceof ServerResponse) {
-                            if (object != ServerResponse.ACTION_COMPLETED) {
-                                if (object == ServerResponse.CLIENT_NOT_FOUND) {
-                                    System.out.println("I've been added to the server");
-                                } else {
-                                    System.out.println("Something went wrong" + object);
-                                }
-                                return;
-                            }
-                            break;
-                        }
                         serializableEmail = (SerializableEmail) object;
                         Email email = new Email(serializableEmail);
                         switch (email.getState()) {
@@ -375,13 +373,13 @@ public class ClientController {
                             }
                         }
                     }
-
                 } catch (EOFException EOFException) {
                     System.out.println("Finished getting emails");
-                } catch (IOException socketException) {
-                    setSocketFailure();
                 } catch (ClassNotFoundException e) {
                     System.out.println("Could not read from stream");
+                } catch (IOException ioException) {
+                    System.out.println("Error reading Emails");
+                    ioException.printStackTrace();
                 } finally {
                     closeConnectionToServer();
                 }
@@ -400,62 +398,24 @@ public class ClientController {
 
     ///////////////////////////////////////
     //Auto and manual server reconnection//
-    private void startPeriodicReqConnection() {
-        if (scheduledExServConn != null) return;
-        scheduledExServConn = Executors.newScheduledThreadPool(1);
-        scheduledExServConn.scheduleAtFixedRate(new ConnectionReqTask(), 1, 20, TimeUnit.SECONDS);
-    }
-
-    class ConnectionReqTask implements Runnable {
-        public ConnectionReqTask() {
-        }
-
-        @Override
-        public void run() {
-            System.out.println("Try To Connect To Server...");
-            openConnectionToServer();
-        }
-    }
-
-    public void shutdownPeriodicReqConnection() {
-        scheduledExServConn.shutdown();
-    }
-
     protected void getNewSocket() throws IOException {
         socket = new Socket(InetAddress.getLocalHost(), 6969);
         objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
     }
 
-    @FXML
-    public void openConnectionToServer() {
-        try {
-            //Test to see if it throws an exception
-            getNewSocket();
-            sendActionToServer(new Action(client, null, Operation.PING));
-            ServerResponse response = waitForResponse();
-            closeConnectionToServer();
-            if (response == ServerResponse.ACTION_COMPLETED) {
-                startPeriodicEmailDownloader();
-                System.out.println("Connection To Server Successes");
-                Platform.runLater(() -> {
-                    client.statusProperty().setValue("Connected");
-                });
-            }
-        } catch (Exception ioException) {
-            setSocketFailure();
-        } finally {
-            restartConnButton.setVisible(!client.statusProperty().getValue().equals("Connected"));
-            if (socket != null && scheduledExServConn != null) {
-                shutdownPeriodicReqConnection();
-            }
-        }
+    protected void setSocketSuccess() {
+        startPeriodicEmailDownloader();
+        System.out.println("Connection To Server Successes");
+        Platform.runLater(() -> {
+            client.statusProperty().setValue("Connected");
+            restartConnButton.setVisible(false);
+        });
     }
 
     protected void setSocketFailure() {
         Platform.runLater(() -> {
             System.out.println("Connection To Server Failure");
             client.statusProperty().setValue("Trying to connect to Server...");
-            startPeriodicReqConnection();
             restartConnButton.setVisible(true);
         });
     }
@@ -471,14 +431,17 @@ public class ClientController {
         }
     }
 
-    private void startPeriodicEmailDownloader() {
+    //////////////////////////////////////////
+    //Auto download of every Email on server//
+    public void startPeriodicEmailDownloader() {
         if (scheduledExEmailDownloader != null) return;
         scheduledExEmailDownloader = Executors.newScheduledThreadPool(1);
         scheduledExEmailDownloader.scheduleAtFixedRate(new PeriodicEmailDownloader(), 0, 5, TimeUnit.SECONDS);
     }
 
     public void shutdownPeriodicEmailDownloader() {
-        scheduledExEmailDownloader.shutdown();
+        if (scheduledExEmailDownloader != null)
+            scheduledExEmailDownloader.shutdown();
     }
 
     class PeriodicEmailDownloader implements Runnable {
@@ -490,6 +453,4 @@ public class ClientController {
             loadAllFromServer();
         }
     }
-
-
 }
