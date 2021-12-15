@@ -8,8 +8,6 @@ import com.progiii.mailclientserver.utils.Operation;
 import com.progiii.mailclientserver.utils.SerializableEmail;
 import com.progiii.mailclientserver.utils.ServerResponse;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleListProperty;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -21,6 +19,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -284,7 +283,9 @@ public class ClientController {
                     }
 
                     if (response == ServerResponse.ACTION_COMPLETED) {
+                        int indexOfEmail = client.whereIs(client.selectedEmail).indexOf(client.selectedEmail);
                         resetSelectedEmail();
+                        showNextEmail(indexOfEmail);
                         loadAllFromServer();
                     } else {
                         Platform.runLater(() -> {
@@ -316,55 +317,91 @@ public class ClientController {
                 } catch (Exception ex) {
                     System.out.println("no response in loadAllFromServer");
                 }
-
-
                 if (response == ServerResponse.ACTION_COMPLETED) {
-                    //TODO only add the new ones and not empty all emails
-                    client.emptySelf();
-                } else return;
+                    ArrayList<Email> emailsFromServer = new ArrayList<>();
+                    try {
+                        SerializableEmail serializableEmail = null;
 
-                try {
-                    SerializableEmail serializableEmail = null;
-                    while ((serializableEmail = (SerializableEmail) objectInputStream.readObject()) != null) {
-                        Email email = new Email(serializableEmail);
-                        switch (email.getState()) {
+                        //Get all emails from socket
+                        while ((serializableEmail = (SerializableEmail) objectInputStream.readObject()) != null) {
+                            Email serverEmail = new Email(serializableEmail);
+                            emailsFromServer.add(serverEmail);
+                        }
+
+                    } catch (EOFException EOFException) {
+                        System.out.println("Finished getting emails");
+                    } catch (ClassNotFoundException e) {
+                        System.out.println("Could not read from stream");
+                    } catch (IOException ioException) {
+                        System.out.println("Error reading Emails in loadAllFromServer");
+                    } finally {
+                        closeConnectionToServer();
+                    }
+
+                    //Cycle through all emails from server to add those that are new or modified
+                    for (Email serverEmail : emailsFromServer) {
+                        switch (serverEmail.getState()) {
                             case RECEIVED -> {
-                                if (!client.contains(client.inboxProperty(), email))
+                                if (!client.hasSameIDInCollection(client.inboxProperty(), serverEmail))
                                     Platform.runLater(() -> {
-                                        client.inboxProperty().add(email);
+                                        client.inboxProperty().add(serverEmail);
                                     });
                             }
                             case SENT -> {
-                                if (!client.contains(client.sentProperty(), email))
+                                if (!client.hasSameIDInCollection(client.sentProperty(), serverEmail))
                                     Platform.runLater(() -> {
-                                        client.sentProperty().add(email);
+                                        client.sentProperty().add(serverEmail);
                                     });
                             }
                             case DRAFTED -> {
-                                if (!client.contains(client.draftsProperty(), email))
+                                if (!client.hasSameIDInCollection(client.draftsProperty(), serverEmail)) {
                                     Platform.runLater(() -> {
-                                        client.draftsProperty().add(email);
+                                        client.draftsProperty().add(serverEmail);
                                     });
+                                } else {
+                                    //Getting the email with the same id and checking if it has any changes
+                                    Email clientEmail = client.findEmailById(client.draftsProperty(), serverEmail.getID());
+                                    if (serverEmail.senderProperty().getValue().compareTo(clientEmail.getSender()) != 0)
+                                        clientEmail.senderProperty().setValue(serverEmail.getSender());
+                                    if (serverEmail.receiverProperty().getValue().compareTo(clientEmail.getReceiver()) != 0)
+                                        clientEmail.receiverProperty().setValue(serverEmail.getReceiver());
+                                    if (serverEmail.subjectProperty().getValue().compareTo(clientEmail.getSubject()) != 0)
+                                        clientEmail.subjectProperty().setValue(serverEmail.getSubject());
+                                    if (serverEmail.bodyProperty().getValue().compareTo(clientEmail.getBody()) != 0)
+                                        clientEmail.bodyProperty().setValue(serverEmail.getBody());
+                                }
                             }
                             case TRASHED -> {
-                                if (!client.contains(client.trashProperty(), email))
+                                if (!client.hasSameIDInCollection(client.trashProperty(), serverEmail))
                                     Platform.runLater(() -> {
-                                        client.trashProperty().add(email);
+                                        client.trashProperty().add(serverEmail);
                                     });
                             }
                         }
                     }
-                } catch (EOFException EOFException) {
-                    System.out.println("Finished getting emails");
-                } catch (ClassNotFoundException e) {
-                    System.out.println("Could not read from stream");
-                } catch (IOException ioException) {
-                    System.out.println("Error reading Emails in loadAllFromServer");
-                } finally {
-                    closeConnectionToServer();
+
+                    //now we cycle through all of our emails to check if we have some that are not in the server anymore
+                    Platform.runLater(()->{
+                        client.inboxProperty().removeIf(inboxEmail ->  !containsID(emailsFromServer, inboxEmail, EmailState.RECEIVED));
+                        client.sentProperty().removeIf(sentEmail -> !containsID(emailsFromServer, sentEmail, EmailState.SENT));
+                        client.draftsProperty().removeIf(draftsEmail -> !containsID(emailsFromServer, draftsEmail, EmailState.DRAFTED));
+                        client.trashProperty().removeIf(trashEmail -> !containsID(emailsFromServer, trashEmail, EmailState.TRASHED));
+                    });
+
+                } else //Not Action completed
+                {
+                    System.out.println("Loading action caused a problem");
                 }
             }
         }).start();
+    }
+
+    private boolean containsID(ArrayList<Email> emailsFromServer, Email inboxEmail, EmailState emailState) {
+        for (Email email : emailsFromServer)
+        {
+            if (email.getState() == emailState && inboxEmail.getID() == email.getID()) return true;
+        }
+        return false;
     }
 
     ///////////////////////////////////////

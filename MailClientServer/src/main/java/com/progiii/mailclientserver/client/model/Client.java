@@ -112,4 +112,13 @@ public class Client {
         }
         return max;
     }
+
+    public boolean hasSameIDInCollection(SimpleListProperty<Email> list, Email email)
+    {
+        for(Email emailIterated : list)
+        {
+            if (emailIterated.getID() == email.getID()) return true;
+        }
+        return false;
+    }
 }

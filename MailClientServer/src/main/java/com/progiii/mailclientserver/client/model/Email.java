@@ -118,7 +118,7 @@ public class Email implements Comparable<Email> {
         return "From: " + getSender() + "\n" +
                 "To: " + getReceiver() + "\n" +
                 "Subject: " + getSubject() + '\n' +
-                ft.format(this.dateTime) + "Stato = " + state;
+                ft.format(this.dateTime) + "Stato = " + state + "\nID = " + getID();
     }
 
     public static Email getRandomEmail(EmailState state) {
