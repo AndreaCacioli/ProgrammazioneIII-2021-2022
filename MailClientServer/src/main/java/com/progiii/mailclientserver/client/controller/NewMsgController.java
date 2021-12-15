@@ -93,7 +93,6 @@ public class NewMsgController {
                             a.show();
                         });
                     }
-                    client.newEmail = new Email(client.getLargestID() + 1);
                 } catch (IOException socketException) {
                     clientController.setSocketFailure();
                 } catch (ClassNotFoundException e) {
@@ -112,6 +111,7 @@ public class NewMsgController {
         }
 
         if (everythingWentFine.get()) {
+            client.newEmail = new Email(client.getLargestID() + 1);
             textAreaMsg.textProperty().unbindBidirectional(client.newEmail.bodyProperty());
             textFieldTo.textProperty().unbindBidirectional(client.newEmail.receiverProperty());
             textFieldSubject.textProperty().unbindBidirectional(client.newEmail.subjectProperty());

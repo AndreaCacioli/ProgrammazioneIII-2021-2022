@@ -125,6 +125,7 @@ public class ClientController {
 
     @FXML
     private void showInbox() {
+        //TODO attenzione se cambio section e clicco reply/ecc.. rimane mail vecchia!!!
         client.selectedEmail = new Email(client.getLargestID() + 1);
         if (client.inboxProperty().size() > 0) client.selectedEmail = client.inboxProperty().get(0);
         emailListView.itemsProperty().bind(client.inboxProperty());
@@ -203,7 +204,7 @@ public class ClientController {
     }
 
     @FXML
-    private void onNewMailClicked() {
+    private void onNewMailButtonClicked() {
         try {
             client.newEmail = new Email(client.getLargestID() + 1);
             client.newEmail.setSender(client.addressProperty().get());
@@ -211,7 +212,50 @@ public class ClientController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    @FXML
+    protected void onForwardButtonClicked() {
+        if (client.selectedEmail != null) {
+            client.newEmail = new Email(client.getLargestID() + 1);
+            client.newEmail.setSender(client.addressProperty().get());
+            client.newEmail.setSubject(client.selectedEmail.getSubject());
+            client.newEmail.setBody(client.selectedEmail.getBody());
+            newMessageStage.show();
+        }
+    }
+
+    @FXML
+    protected void onReplyButtonClicked() {
+        if (client.selectedEmail != null) {
+            client.newEmail = new Email(client.getLargestID() + 1);
+            client.newEmail.setSender(client.addressProperty().get());
+            client.newEmail.setReceiver(client.selectedEmail.getSender());
+            client.newEmail.setSubject("Re: " + client.selectedEmail.getSubject());
+            newMessageStage.show();
+        }
+    }
+
+    @FXML
+    protected void onReplyAllButtonClicked() {
+        if (client.selectedEmail != null) {
+            client.newEmail = new Email(client.getLargestID() + 1);
+            client.newEmail.setSender(client.addressProperty().get());
+            String[] receivers = client.selectedEmail.getReceiver().split(",");
+            StringBuilder parameter = new StringBuilder();
+            for (int i = 0; i < receivers.length; i++) {
+                String receiver = receivers[i];
+                if (client.getAddress().equals(receiver))
+                    parameter.append(client.selectedEmail.getSender());
+                else
+                    parameter.append(receivers[i]);
+                if (i != receivers.length - 1)
+                    parameter.append(",");
+            }
+            client.newEmail.setReceiver(parameter.toString());
+            client.newEmail.setSubject("Re: " + client.selectedEmail.getSubject());
+            newMessageStage.show();
+        }
     }
 
     private void bindMailToView(Email email) {
@@ -222,7 +266,10 @@ public class ClientController {
     }
 
     private void showNextEmail(int indexOfEmailToBeShown) {
-        if (indexOfEmailToBeShown == 0 && emailListView.getItems().size() == 0) return;
+        if (indexOfEmailToBeShown == 0 && emailListView.getItems().size() == 0) {
+            //client.selectedEmail = new Email(client.getLargestID() + 1);
+            return;
+        }
 
         if (indexOfEmailToBeShown == 0) {
             emailListView.getSelectionModel().select(indexOfEmailToBeShown);
@@ -246,7 +293,6 @@ public class ClientController {
         subjectTextField.setText("");
         selectedEmailView.textProperty().unbind();
         selectedEmailView.setText("");
-
     }
 
 
@@ -304,7 +350,7 @@ public class ClientController {
                     } finally {
                         closeConnectionToServer();
                     }
-
+                    // TODO check where is when click 2 times trash button
                     if (response == ServerResponse.ACTION_COMPLETED) {
                         int indexOfEmail = client.whereIs(client.selectedEmail).indexOf(client.selectedEmail);
                         resetSelectedEmail();

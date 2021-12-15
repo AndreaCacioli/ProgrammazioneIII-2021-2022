@@ -44,6 +44,10 @@ public class Email implements Comparable<Email> {
         this.sender.set(sender);
     }
 
+    public void setReceiver(String receiver) {
+        this.receiver.set(receiver);
+    }
+
     public StringProperty senderProperty() {
         return sender;
     }
@@ -83,8 +87,17 @@ public class Email implements Comparable<Email> {
     public void setState(EmailState state) {
         this.state = state;
     }
+
     public void setRead(boolean value) {
         this.read = value;
+    }
+
+    public void setSubject(String subject) {
+        this.subject.setValue(subject);
+    }
+
+    public void setBody(String body) {
+        this.body.set(body);
     }
 
     public Email(String sender, String receiver, String subject, String body, EmailState state, long ID) {

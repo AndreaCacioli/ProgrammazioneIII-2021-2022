@@ -89,18 +89,7 @@ public class Client {
         return ret;
     }
 
-    public void emptySelf() {
-        //TODO check if it works
-        Platform.runLater(() -> {
-            inbox.removeAll(inboxProperty());
-            sent.removeAll(sentProperty());
-            drafts.removeAll(draftsProperty());
-            trash.removeAll(trashProperty());
-        });
-    }
-
-    public long getLargestID()
-    {
+    public long getLargestID() {
         long max = 0;
         SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
         allEmails.addAll(inboxProperty());
@@ -113,10 +102,8 @@ public class Client {
         return max;
     }
 
-    public boolean hasSameIDInCollection(SimpleListProperty<Email> list, Email email)
-    {
-        for(Email emailIterated : list)
-        {
+    public boolean hasSameIDInCollection(SimpleListProperty<Email> list, Email email) {
+        for (Email emailIterated : list) {
             if (emailIterated.getID() == email.getID()) return true;
         }
         return false;
