@@ -57,7 +57,7 @@ public class ClientController {
     private Button restartConnButton;
 
     private Client client;
-    private Stage newMessageStage;
+    protected Stage newMessageStage;
     private Socket socket;
     private ScheduledExecutorService scheduledExEmailDownloader;
     protected final ReentrantLock reentrantLock = new ReentrantLock();
@@ -319,6 +319,7 @@ public class ClientController {
 
 
                 if (response == ServerResponse.ACTION_COMPLETED) {
+                    //TODO only add the new ones and not empty all emails
                     client.emptySelf();
                 } else return;
 
@@ -407,7 +408,7 @@ public class ClientController {
     public void startPeriodicEmailDownloader() {
         if (scheduledExEmailDownloader != null) return;
         scheduledExEmailDownloader = Executors.newScheduledThreadPool(1);
-        scheduledExEmailDownloader.scheduleAtFixedRate(new PeriodicEmailDownloader(), 0, 5, TimeUnit.SECONDS);
+        scheduledExEmailDownloader.scheduleAtFixedRate(new PeriodicEmailDownloader(), 0, 30, TimeUnit.SECONDS);
     }
 
     public void shutdownPeriodicEmailDownloader() {

@@ -92,10 +92,10 @@ public class Client {
     public void emptySelf() {
         //TODO check if it works
         Platform.runLater(() -> {
-            inbox.setValue(FXCollections.observableArrayList());
-            sent.setValue(FXCollections.observableArrayList());
-            drafts.setValue(FXCollections.observableArrayList());
-            trash.setValue(FXCollections.observableArrayList());
+            inbox.removeAll(inboxProperty());
+            sent.removeAll(sentProperty());
+            drafts.removeAll(draftsProperty());
+            trash.removeAll(trashProperty());
         });
     }
 

@@ -191,7 +191,7 @@ public class ServerController {
                 } else if (actionRequest.getOperation() == Operation.GET_ALL_EMAILS) {
                     //The only void method because it sends the response before sending all the emails
                     sendAllEmails(actionRequest);
-                    //server.add(actionRequest);
+                    server.add(actionRequest);
                 }
                 synchronized (logTextArea) {
                     server.logProperty().setValue(server.logProperty().getValue() + " Request Handled by " + Thread.currentThread().getName() + '\n');
@@ -231,6 +231,7 @@ public class ServerController {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email sentEmail = new Email(serializableEmail);
+                sentEmail.setState(EmailState.SENT);
                 Email inboxEmail = sentEmail.clone();
                 inboxEmail.setState(EmailState.RECEIVED);
 
@@ -277,7 +278,7 @@ public class ServerController {
 
                 //Otherwise we add it to the list
                 emailToBeDrafted.setID(sender.getLargestID() + 1);
-                sender.trashProperty().add(emailToBeDrafted);
+                sender.draftsProperty().add(emailToBeDrafted);
                 return ServerResponse.ACTION_COMPLETED;
             } catch (Exception ex) {
                 ex.printStackTrace();

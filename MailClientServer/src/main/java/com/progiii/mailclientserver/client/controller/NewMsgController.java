@@ -10,6 +10,7 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -84,7 +85,7 @@ public class NewMsgController {
                     clientController.sendEmailToServer(new SerializableEmail(client.newEmail));
                     ServerResponse response = clientController.waitForResponse();
                     if (response == ServerResponse.ACTION_COMPLETED) {
-                        clientController.loadAllFromServer();
+                        everythingWentFine.set(true);
                     } else {
                         Platform.runLater(() -> {
                             String s = action.getOperation() == Operation.NEW_DRAFT ? "drafting " : "sending ";
@@ -115,8 +116,9 @@ public class NewMsgController {
             textFieldTo.textProperty().unbindBidirectional(client.newEmail.receiverProperty());
             textFieldSubject.textProperty().unbindBidirectional(client.newEmail.subjectProperty());
 
-            //TODO fallo chiudereeeeeeee
-            Stage stage = (Stage) draftsNewMsgButton.getScene().getWindow();
+            clientController.loadAllFromServer();
+
+            Stage stage = (Stage) ((Node)(event.getSource())).getScene().getWindow();
             stage.close();
         }
     }
