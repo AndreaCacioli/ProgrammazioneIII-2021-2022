@@ -166,6 +166,29 @@ public class ClientController {
         client.selectedEmail = email;
         bindMailToView(email);
 
+
+        if (!email.isRead()) {
+            new Thread(() -> {
+                try {
+                    getNewSocket();
+                    setSocketSuccess();
+                    sendActionToServer(new Action(client, null, Operation.READ_EMAIL));
+                    sendEmailToServer(new SerializableEmail(client.selectedEmail));
+                    ServerResponse response = waitForResponse();
+                    if (response == ServerResponse.ACTION_COMPLETED) {
+                        email.setRead(true);
+                    }
+                } catch (IOException exception) {
+                    setSocketFailure();
+                } catch (ClassNotFoundException e) {
+                    System.out.println("Could not read from stream");
+                } finally {
+                    closeConnectionToServer();
+                }
+            }).start();
+        }
+
+
         if (event.getClickCount() == 2) {
             if (client.selectedEmail.getState() == EmailState.DRAFTED) {
                 client.newEmail = client.selectedEmail;
@@ -345,6 +368,10 @@ public class ClientController {
                                 if (!client.hasSameIDInCollection(client.inboxProperty(), serverEmail))
                                     Platform.runLater(() -> {
                                         client.inboxProperty().add(serverEmail);
+                                        if (!serverEmail.isRead()) {
+                                            Alert a = new Alert(Alert.AlertType.CONFIRMATION, "New Email!");
+                                            a.show();
+                                        }
                                     });
                             }
                             case SENT -> {
@@ -381,8 +408,8 @@ public class ClientController {
                     }
 
                     //now we cycle through all of our emails to check if we have some that are not in the server anymore
-                    Platform.runLater(()->{
-                        client.inboxProperty().removeIf(inboxEmail ->  !containsID(emailsFromServer, inboxEmail, EmailState.RECEIVED));
+                    Platform.runLater(() -> {
+                        client.inboxProperty().removeIf(inboxEmail -> !containsID(emailsFromServer, inboxEmail, EmailState.RECEIVED));
                         client.sentProperty().removeIf(sentEmail -> !containsID(emailsFromServer, sentEmail, EmailState.SENT));
                         client.draftsProperty().removeIf(draftsEmail -> !containsID(emailsFromServer, draftsEmail, EmailState.DRAFTED));
                         client.trashProperty().removeIf(trashEmail -> !containsID(emailsFromServer, trashEmail, EmailState.TRASHED));
@@ -397,8 +424,7 @@ public class ClientController {
     }
 
     private boolean containsID(ArrayList<Email> emailsFromServer, Email inboxEmail, EmailState emailState) {
-        for (Email email : emailsFromServer)
-        {
+        for (Email email : emailsFromServer) {
             if (email.getState() == emailState && inboxEmail.getID() == email.getID()) return true;
         }
         return false;

@@ -6,5 +6,4 @@ public enum ServerResponse {
     RECEIVER_NOT_FOUND,
     UNKNOWN_ERROR,
     EMAIL_NOT_FOUND,
-    EMAIL_ALREADY_IN_DRAFTS;
 }

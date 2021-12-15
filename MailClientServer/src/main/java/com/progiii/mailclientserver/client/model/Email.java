@@ -3,6 +3,7 @@ package com.progiii.mailclientserver.client.model;
 import com.progiii.mailclientserver.utils.SerializableEmail;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -17,10 +18,15 @@ public class Email implements Comparable<Email> {
     private final StringProperty subject;
     private final StringProperty body;
     private long ID;
+    private boolean read = true;
 
 
     private EmailState state;
     private final LocalDateTime dateTime;
+
+    public boolean isRead() {
+        return read;
+    }
 
     public long getID() {
         return ID;
@@ -62,14 +68,24 @@ public class Email implements Comparable<Email> {
         return body.get();
     }
 
-    public StringProperty bodyProperty() {return body;}
+    public StringProperty bodyProperty() {
+        return body;
+    }
 
-    public LocalDateTime getDateTime() {return dateTime;}
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
 
-    public EmailState getState() {return state;}
+    public EmailState getState() {
+        return state;
+    }
 
-    public void setState(EmailState state) {this.state = state;}
-
+    public void setState(EmailState state) {
+        this.state = state;
+    }
+    public void setRead(boolean value) {
+        this.read = value;
+    }
 
     public Email(String sender, String receiver, String subject, String body, EmailState state, long ID) {
         this.sender = new SimpleStringProperty(sender);
@@ -91,8 +107,7 @@ public class Email implements Comparable<Email> {
         this.ID = ID;
     }
 
-    public Email(SerializableEmail email)
-    {
+    public Email(SerializableEmail email) {
         this.sender = new SimpleStringProperty(email.getSender());
         this.receiver = new SimpleStringProperty(email.getReceiver());
         this.subject = new SimpleStringProperty(email.getSubject());
@@ -100,6 +115,7 @@ public class Email implements Comparable<Email> {
         this.state = email.getState();
         this.dateTime = email.getDateTime();
         ID = email.getID();
+        read = email.isRead();
     }
 
     public Email(long ID) {
@@ -166,8 +182,7 @@ public class Email implements Comparable<Email> {
 
     }
 
-    public static String getRandomAddress()
-    {
+    public static String getRandomAddress() {
         String SALTCHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         StringBuilder salt = new StringBuilder();
         Random rnd = new Random();
@@ -180,9 +195,8 @@ public class Email implements Comparable<Email> {
 
     }
 
-    public Email clone()
-    {
-        return new Email(this.getSender(),this.getReceiver(), this.getSubject(),this.getBody(),this.getState(),this.getDateTime(),this.getID());
+    public Email clone() {
+        return new Email(this.getSender(), this.getReceiver(), this.getSubject(), this.getBody(), this.getState(), this.getDateTime(), this.getID());
     }
 
     @Override
@@ -190,7 +204,7 @@ public class Email implements Comparable<Email> {
         //Strings have priority
         if (sender.getValue().compareTo(o.getSender()) != 0) return sender.getValue().compareTo(o.getSender());
         //if they are equal, then we move to the IDs
-        return Long.compare(getID(),o.getID());
+        return Long.compare(getID(), o.getID());
     }
 
     @Override

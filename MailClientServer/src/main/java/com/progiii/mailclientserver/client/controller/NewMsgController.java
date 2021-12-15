@@ -64,7 +64,7 @@ public class NewMsgController {
     ///////////////////////////////////////
     //Methods that send ACTIONS to Server//
     @FXML
-    public void onSendButtonClicked(ActionEvent event) {
+    public void onSendButtonClicked(Event event) {
         doNewMailOperation(event, new Action(client, client.newEmail.getReceiver().strip(), Operation.SEND_EMAIL));
     }
 
@@ -118,7 +118,7 @@ public class NewMsgController {
 
             clientController.loadAllFromServer();
 
-            Stage stage = (Stage) ((Node)(event.getSource())).getScene().getWindow();
+            Stage stage = (Stage) ((Node) (event.getSource())).getScene().getWindow();
             stage.close();
         }
     }

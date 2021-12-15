@@ -16,6 +16,11 @@ public class SerializableEmail implements Serializable, Comparable<SerializableE
     private EmailState state;
     private LocalDateTime dateTime;
     private long ID;
+    private boolean read = true;
+
+    public boolean isRead() {
+        return read;
+    }
 
     public long getID() {
         return ID;
@@ -49,7 +54,7 @@ public class SerializableEmail implements Serializable, Comparable<SerializableE
         return dateTime;
     }
 
-    public SerializableEmail(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime, long ID) {
+    public SerializableEmail(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime, long ID, boolean read) {
         this.sender = sender;
         this.receiver = receiver;
         this.subject = subject;
@@ -57,6 +62,7 @@ public class SerializableEmail implements Serializable, Comparable<SerializableE
         this.state = state;
         this.dateTime = dateTime;
         this.ID = ID;
+        this.read = read;
     }
 
     public SerializableEmail(Email email)
@@ -68,6 +74,7 @@ public class SerializableEmail implements Serializable, Comparable<SerializableE
         this.state = email.getState();
         this.dateTime = email.getDateTime();
         ID = email.getID();
+        this.read = email.isRead();
     }
 
     @Override

@@ -97,7 +97,7 @@ public class ServerController {
             ex.printStackTrace();
             return;
         }
-        server.logProperty().setValue(server.logProperty().getValue() + " START SERVER... " + '\n');
+        server.updateLog(" START SERVER... " + '\n');
         server.readFromJSonClientsFile();
         executorService = Executors.newFixedThreadPool(SIZE_OF_THREAD_POOL);
         scheduledExecutorService = Executors.newScheduledThreadPool(1);
@@ -129,7 +129,7 @@ public class ServerController {
         } catch (IOException ioException) {
             System.out.println("Server Closing, aborting wait");
         }
-        server.logProperty().setValue(server.logProperty().getValue() + " SHUTTING DOWN " + '\n');
+        server.updateLog(" SHUTTING DOWN " + '\n');
     }
 
     private Client findClientByAddress(String address) {
@@ -165,7 +165,7 @@ public class ServerController {
             if (!everythingInitialized) return;
             try {
                 synchronized (logTextArea) {
-                    server.logProperty().setValue(server.logProperty().getValue() + " Incoming Request handled by thread " + Thread.currentThread().getName() + '\n');
+                    server.updateLog(" Incoming Request " + Thread.currentThread().getName() + " will take care of\n");
                 }
                 Action actionRequest = (Action) objectInputStream.readObject();
                 ServerResponse response;
@@ -188,17 +188,22 @@ public class ServerController {
                     sendResponse(response);
                     server.add(actionRequest);
                     server.saveClientsToJSON();
+                } else if (actionRequest.getOperation() == Operation.READ_EMAIL) {
+                    response = setEmailAsRead(actionRequest, objectInputStream);
+                    sendResponse(response);
+                    server.add(actionRequest);
+                    server.saveClientsToJSON();
                 } else if (actionRequest.getOperation() == Operation.GET_ALL_EMAILS) {
                     //The only void method because it sends the response before sending all the emails
                     sendAllEmails(actionRequest);
                     server.add(actionRequest);
                 }
                 synchronized (logTextArea) {
-                    server.logProperty().setValue(server.logProperty().getValue() + " Request Handled by " + Thread.currentThread().getName() + '\n');
+                    server.updateLog(" Request Handled by " + Thread.currentThread().getName() + '\n');
                 }
             } catch (Exception ex) {
                 synchronized (logTextArea) {
-                    server.logProperty().setValue(server.logProperty().getValue() + " Error Processing Request " + '\n');
+                    server.updateLog(" Error Processing Request " + '\n');
                 }
                 ex.printStackTrace();
             } finally {
@@ -234,6 +239,7 @@ public class ServerController {
                 sentEmail.setState(EmailState.SENT);
                 Email inboxEmail = sentEmail.clone();
                 inboxEmail.setState(EmailState.RECEIVED);
+                inboxEmail.setRead(false);
 
 
                 //We get the clients to operate on
@@ -242,7 +248,6 @@ public class ServerController {
 
                 //If receiver is found
                 if (receiver != null) {
-                    server.add(actionRequest);
                     sentEmail.setID(receiver.getLargestID() + 1);
                     sender.sentProperty().add(sentEmail);
                     inboxEmail.setID(receiver.getLargestID() + 1);
@@ -276,7 +281,7 @@ public class ServerController {
                     return ServerResponse.ACTION_COMPLETED;
                 }
 
-                //Otherwise we add it to the list
+                //Otherwise, we add it to the list
                 emailToBeDrafted.setID(sender.getLargestID() + 1);
                 sender.draftsProperty().add(emailToBeDrafted);
                 return ServerResponse.ACTION_COMPLETED;
@@ -324,6 +329,8 @@ public class ServerController {
                 if (requestClient == null) //only one time this could happen
                 {
                     server.addClient(new Client(actionRequest.getSender(), false));
+                    System.out.println("New Client!");
+                    server.saveClientsToJSON();
                     sendResponse(ServerResponse.CLIENT_NOT_FOUND);
                     return;
                 }
@@ -347,6 +354,27 @@ public class ServerController {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+        }
+    }
+
+    private ServerResponse setEmailAsRead(Action actionRequest, ObjectInputStream objectInputStream) {
+        try {
+            SerializableEmail serializableEmail = (SerializableEmail) objectInputStream.readObject();
+            long id = serializableEmail.getID();
+
+            Client sender = findClientByAddress(actionRequest.getSender());
+            if (sender == null) return ServerResponse.CLIENT_NOT_FOUND;
+
+            //We only check inbox as an unread email can only be there
+            Email email = sender.findEmailById(sender.inboxProperty(), id);
+            if (email == null) return ServerResponse.EMAIL_NOT_FOUND;
+
+            email.setRead(true);
+            server.saveClientsToJSON();
+            return ServerResponse.ACTION_COMPLETED;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return ServerResponse.UNKNOWN_ERROR;
         }
     }
 

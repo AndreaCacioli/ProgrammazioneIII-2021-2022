@@ -4,6 +4,7 @@ import com.progiii.mailclientserver.client.model.Client;
 import com.progiii.mailclientserver.client.model.Email;
 import com.progiii.mailclientserver.client.model.EmailState;
 import com.progiii.mailclientserver.utils.Action;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleStringProperty;
 import org.json.simple.JSONArray;
@@ -49,7 +50,6 @@ public class Server {
         clients = new ArrayList<>();
         actions = new ArrayList<>();
         log = new SimpleStringProperty("");
-        //readFromJSonClientsFile();
     }
 
     public static EmailState stringToEmailState(String s) {
@@ -70,7 +70,7 @@ public class Server {
 
     public synchronized void add(Action incomingRequest) {
         actions.add(incomingRequest);
-        log.setValue(log.getValue() + incomingRequest.toString() + '\n');
+        updateLog(incomingRequest.toString() + '\n');
     }
 
     /**
@@ -133,9 +133,11 @@ public class Server {
                 String body = (String) emailObj.get("body");
                 String dateTime = (String) emailObj.get("dateTime");
                 long ID = (long) emailObj.get("ID");
+                boolean read = (boolean) emailObj.get("read");
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
                 EmailState emailState = stringToEmailState(names[i]);
                 Email email = new Email(sender, receiver, subject, body, emailState, LocalDateTime.parse(dateTime, formatter), ID);
+                email.setRead(read);
                 switch (emailState) {
                     case RECEIVED -> clientObject.inboxProperty().add(email);
                     case SENT -> clientObject.sentProperty().add(email);
@@ -174,6 +176,7 @@ public class Server {
                     emailDetails.put("body", email.getBody());
                     emailDetails.put("dateTime", email.getDateTime().format(formatter));
                     emailDetails.put("ID", email.getID());
+                    emailDetails.put("read", email.isRead());
                     arrayOfEmail.add(emailDetails);
                 }
                 section = new JSONObject();
@@ -200,6 +203,13 @@ public class Server {
                 e.printStackTrace();
             }
         }
+    }
+
+
+    public void updateLog(String s) {
+        Platform.runLater(() -> {
+            log.setValue(log.getValue() + s);
+        });
     }
 
 }

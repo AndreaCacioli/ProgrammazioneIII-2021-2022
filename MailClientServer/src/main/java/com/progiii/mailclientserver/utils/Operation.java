@@ -6,5 +6,6 @@ public enum Operation
     NEW_DRAFT,
     DELETE_EMAIL,
     GET_ALL_EMAILS,
-    PING
+    PING,
+    READ_EMAIL
 }
