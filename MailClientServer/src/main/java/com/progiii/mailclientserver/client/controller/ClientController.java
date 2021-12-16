@@ -256,15 +256,15 @@ public class ClientController {
             client.newEmail = new Email(client.getLargestID() + 1);
             client.newEmail.setSender(client.addressProperty().get());
             String[] receivers = client.selectedEmail.getReceiver().split(",");
-            StringBuilder parameter = new StringBuilder();
+            String parameter = "";
             for (int i = 0; i < receivers.length; i++) {
-                String receiver = receivers[i];
+                String receiver = receivers[i].strip();
                 if (client.getAddress().equals(receiver))
-                    parameter.append(client.selectedEmail.getSender());
+                    parameter += client.selectedEmail.getSender();
                 else
-                    parameter.append(receivers[i]);
+                    parameter += receiver;
                 if (i != receivers.length - 1)
-                    parameter.append(",");
+                    parameter += ",";
             }
             client.newEmail.setReceiver(parameter.toString());
             client.newEmail.setSubject("Re: " + client.selectedEmail.getSubject());
@@ -451,6 +451,9 @@ public class ClientController {
                                 if (!client.hasSameIDInCollection(client.draftsProperty(), serverEmail)) {
                                     Platform.runLater(() -> client.draftsProperty().add(serverEmail));
                                 } else {
+                                    if (client.newEmail != null && serverEmail.getID() == client.newEmail.getID()) {
+                                        break;
+                                    }
                                     //Getting the email with the same id and checking if it has any changes
                                     Email clientEmail = client.findEmailById(client.draftsProperty(), serverEmail.getID());
                                     if (serverEmail.senderProperty().getValue().compareTo(clientEmail.getSender()) != 0)

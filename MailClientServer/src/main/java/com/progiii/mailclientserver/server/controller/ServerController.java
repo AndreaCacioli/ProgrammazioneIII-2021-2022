@@ -239,6 +239,7 @@ public class ServerController {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email sentEmail = new Email(serializableEmail);
+                sentEmail.setReceiver(sentEmail.getReceiver().replaceAll(" ", ""));
                 sentEmail.setState(EmailState.SENT);
 
                 //We get the clients to operate on
