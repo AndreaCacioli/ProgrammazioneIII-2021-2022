@@ -2,6 +2,10 @@
     -fx-background-color: transparent;
 }
 
+.toolbarButtonNewMsg {
+    -fx-background-color: transparent;
+}
+
 .sectionButton {
     -fx-background-color: transparent;
 }
@@ -18,6 +22,12 @@
 }
 
 .toolbarButton:pressed {
+    -fx-background-color: rgba(189, 195, 199, 0.3);
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+}
+
+.toolbarButtonNewMsg:pressed {
     -fx-background-color: rgba(189, 195, 199, 0.3);
     -fx-background-radius: 5;
     -fx-background-insets: 0;

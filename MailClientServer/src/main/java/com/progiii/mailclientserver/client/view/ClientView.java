@@ -37,6 +37,7 @@ public class ClientView extends Application {
 
         newStage.setOnShown((event) -> controller1.bindEverything());
         newStage.setScene(scene1);
+        scene1.getStylesheets().add(Objects.requireNonNull(ClientView.class.getResource("appStyle.css")).toExternalForm());
         newStage.setTitle("New Email");
         controller.setStage(newStage);
 

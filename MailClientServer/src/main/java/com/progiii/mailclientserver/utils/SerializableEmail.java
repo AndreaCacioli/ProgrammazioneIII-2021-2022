@@ -6,8 +6,7 @@ import com.progiii.mailclientserver.client.model.EmailState;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class SerializableEmail implements Serializable, Comparable<SerializableEmail>
-{
+public class SerializableEmail implements Serializable, Comparable<SerializableEmail> {
     private final String sender;
     private final String receiver;
     private final String subject;
@@ -54,21 +53,9 @@ public class SerializableEmail implements Serializable, Comparable<SerializableE
         return dateTime;
     }
 
-    public SerializableEmail(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime, long ID, boolean read) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.subject = subject;
-        this.body = body;
-        this.state = state;
-        this.dateTime = dateTime;
-        this.ID = ID;
-        this.read = read;
-    }
-
-    public SerializableEmail(Email email)
-    {
-        this.sender = email.getSender();
-        this.receiver = email.getReceiver();
+    public SerializableEmail(Email email) {
+        this.sender = email.getSender().strip();
+        this.receiver = email.getReceiver().strip();
         this.subject = email.getSubject();
         this.body = email.getBody();
         this.state = email.getState();

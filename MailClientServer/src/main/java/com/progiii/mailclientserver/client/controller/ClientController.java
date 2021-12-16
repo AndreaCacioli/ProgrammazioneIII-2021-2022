@@ -7,18 +7,23 @@ import com.progiii.mailclientserver.utils.Action;
 import com.progiii.mailclientserver.utils.Operation;
 import com.progiii.mailclientserver.utils.SerializableEmail;
 import com.progiii.mailclientserver.utils.ServerResponse;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.*;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,6 +56,9 @@ public class ClientController {
 
     @FXML
     private Label statusLabel;
+
+    @FXML
+    private Label timeLabel;
 
     @FXML
     private Button restartConnButton;
@@ -120,12 +128,18 @@ public class ClientController {
     //Methods that change the GUI//
     @FXML
     public void initialize() {
-
+        Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
+            LocalTime currentTime = LocalTime.now();
+            timeLabel.setText(currentTime.getHour() + ":" + currentTime.getMinute() + "\t");
+        }),
+                new KeyFrame(Duration.seconds(1))
+        );
+        clock.setCycleCount(Animation.INDEFINITE);
+        clock.play();
     }
 
     @FXML
     private void showInbox() {
-        //TODO attenzione se cambio section e clicco reply/ecc.. rimane mail vecchia!!!
         client.selectedEmail = new Email(client.getLargestID() + 1);
         if (client.inboxProperty().size() > 0) client.selectedEmail = client.inboxProperty().get(0);
         emailListView.itemsProperty().bind(client.inboxProperty());
@@ -265,34 +279,36 @@ public class ClientController {
         selectedEmailView.textProperty().bind(email.bodyProperty());
     }
 
-    private void showNextEmail(int indexOfEmailToBeShown) {
-        if (indexOfEmailToBeShown == 0 && emailListView.getItems().size() == 0) {
-            //client.selectedEmail = new Email(client.getLargestID() + 1);
+    private void showNextEmail(int indexOfDeletedEmail) {
+        if (emailListView.getItems().size() == 1) {
+            resetSelectedEmail();
             return;
         }
 
-        if (indexOfEmailToBeShown == 0) {
-            emailListView.getSelectionModel().select(indexOfEmailToBeShown);
-            client.selectedEmail = emailListView.getItems().get(indexOfEmailToBeShown);
+        if (indexOfDeletedEmail == 0) {
+            resetSelectedEmail();
+            emailListView.getSelectionModel().select(1);
+            client.selectedEmail = emailListView.getItems().get(1);
             bindMailToView(client.selectedEmail);
         }
-        if (indexOfEmailToBeShown > 0 && indexOfEmailToBeShown - 1 < emailListView.getItems().size()) {
-            emailListView.getSelectionModel().select(indexOfEmailToBeShown - 1);
-            client.selectedEmail = emailListView.getItems().get(indexOfEmailToBeShown - 1);
+
+        if (indexOfDeletedEmail > 0 && indexOfDeletedEmail - 1 < emailListView.getItems().size()) {
+            resetSelectedEmail();
+            emailListView.getSelectionModel().select(indexOfDeletedEmail - 1);
+            client.selectedEmail = emailListView.getItems().get(indexOfDeletedEmail - 1);
             bindMailToView(client.selectedEmail);
         }
     }
 
     private void resetSelectedEmail() {
         client.selectedEmail = new Email(client.getLargestID() + 1);
+
         fromTextField.textProperty().unbind();
-        fromTextField.setText("");
         toTextField.textProperty().unbind();
-        toTextField.setText("");
         subjectTextField.textProperty().unbind();
-        subjectTextField.setText("");
         selectedEmailView.textProperty().unbind();
-        selectedEmailView.setText("");
+
+        bindMailToView(client.selectedEmail);
     }
 
 
@@ -332,6 +348,13 @@ public class ClientController {
 
     @FXML
     private void deleteSelectedEmail() {
+        if (client.selectedEmail == null || client.selectedEmail.getSender().equals("")) {
+            Platform.runLater(() -> {
+                Alert a = new Alert(Alert.AlertType.ERROR, "Please select an email");
+                a.show();
+            });
+            return;
+        }
         new Thread(() -> {
             synchronized (reentrantLock) {
                 ServerResponse response = null;
@@ -353,9 +376,9 @@ public class ClientController {
                     // TODO check where is when click 2 times trash button
                     if (response == ServerResponse.ACTION_COMPLETED) {
                         int indexOfEmail = client.whereIs(client.selectedEmail).indexOf(client.selectedEmail);
+                        loadAllFromServer();
                         resetSelectedEmail();
                         showNextEmail(indexOfEmail);
-                        loadAllFromServer();
                     } else {
                         Platform.runLater(() -> {
                             Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while deleting an email");
@@ -422,15 +445,11 @@ public class ClientController {
                             }
                             case SENT -> {
                                 if (!client.hasSameIDInCollection(client.sentProperty(), serverEmail))
-                                    Platform.runLater(() -> {
-                                        client.sentProperty().add(serverEmail);
-                                    });
+                                    Platform.runLater(() -> client.sentProperty().add(serverEmail));
                             }
                             case DRAFTED -> {
                                 if (!client.hasSameIDInCollection(client.draftsProperty(), serverEmail)) {
-                                    Platform.runLater(() -> {
-                                        client.draftsProperty().add(serverEmail);
-                                    });
+                                    Platform.runLater(() -> client.draftsProperty().add(serverEmail));
                                 } else {
                                     //Getting the email with the same id and checking if it has any changes
                                     Email clientEmail = client.findEmailById(client.draftsProperty(), serverEmail.getID());
@@ -446,9 +465,7 @@ public class ClientController {
                             }
                             case TRASHED -> {
                                 if (!client.hasSameIDInCollection(client.trashProperty(), serverEmail))
-                                    Platform.runLater(() -> {
-                                        client.trashProperty().add(serverEmail);
-                                    });
+                                    Platform.runLater(() -> client.trashProperty().add(serverEmail));
                             }
                         }
                     }
@@ -517,7 +534,7 @@ public class ClientController {
     public void startPeriodicEmailDownloader() {
         if (scheduledExEmailDownloader != null) return;
         scheduledExEmailDownloader = Executors.newScheduledThreadPool(1);
-        scheduledExEmailDownloader.scheduleAtFixedRate(new PeriodicEmailDownloader(), 0, 30, TimeUnit.SECONDS);
+        scheduledExEmailDownloader.scheduleAtFixedRate(new PeriodicEmailDownloader(), 0, 5, TimeUnit.SECONDS);
     }
 
     public void shutdownPeriodicEmailDownloader() {

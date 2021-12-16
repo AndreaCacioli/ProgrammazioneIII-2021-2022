@@ -13,6 +13,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.AnchorPane;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -43,6 +44,7 @@ public class ServerController {
     @FXML
     private Button stopServerButton;
 
+
     @FXML
     public void initialize() {
         if (this.server != null)
@@ -52,6 +54,7 @@ public class ServerController {
         logTextArea.textProperty().bind(server.logProperty());
         startServer();
     }
+
 
     /**
      * We use this method to start Server
@@ -237,25 +240,37 @@ public class ServerController {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email sentEmail = new Email(serializableEmail);
                 sentEmail.setState(EmailState.SENT);
-                Email inboxEmail = sentEmail.clone();
-                inboxEmail.setState(EmailState.RECEIVED);
-                inboxEmail.setRead(false);
-
 
                 //We get the clients to operate on
                 Client sender = findClientByAddress(actionRequest.getSender());
-                Client receiver = findClientByAddress(actionRequest.getReceiver());
 
-                //If receiver is found
-                if (receiver != null) {
-                    sentEmail.setID(receiver.getLargestID() + 1);
-                    sender.sentProperty().add(sentEmail);
+                String[] receiversTmp = actionRequest.getReceiver().split(",");
+                ArrayList<Client> receivers = new ArrayList<>();
+
+                //check if there are null receivers
+                for (int i = 0; i < receiversTmp.length; i++) {
+                    Client client = findClientByAddress(receiversTmp[i].strip());
+                    if (receiversTmp[i] == null || client == null)
+                        return ServerResponse.RECEIVER_NOT_FOUND;
+                    receivers.add(client);
+                    receiversTmp[i] = receiversTmp[i].strip();
+                }
+
+                for (int j = 0; j < receiversTmp.length; j++) {
+                    Client receiver = receivers.get(j);
+
+                    Email inboxEmail = sentEmail.clone();
+                    inboxEmail.setState(EmailState.RECEIVED);
+                    inboxEmail.setRead(false);
+                    // Privacy
+                    // inboxEmail.setReceiver(receiversTmp[j]);
+
                     inboxEmail.setID(receiver.getLargestID() + 1);
                     receiver.inboxProperty().add(inboxEmail);
-                    return ServerResponse.ACTION_COMPLETED;
-                } else {
-                    return ServerResponse.RECEIVER_NOT_FOUND;
                 }
+                sentEmail.setID(sender.getLargestID() + 1);
+                sender.sentProperty().add(sentEmail);
+                return ServerResponse.ACTION_COMPLETED;
             } catch (Exception ex) {
                 ex.printStackTrace();
                 return ServerResponse.UNKNOWN_ERROR;
@@ -295,7 +310,6 @@ public class ServerController {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email emailToBeDeleted = new Email(serializableEmail);
-                emailToBeDeleted.setState(EmailState.TRASHED);
 
                 //We get the client who asked for a deletion
                 Client sender = findClientByAddress(actionRequest.getSender());
@@ -312,6 +326,7 @@ public class ServerController {
                 } else {
                     list.remove(emailToBeDeleted);
                     sender.trashProperty().add(emailToBeDeleted);
+                    emailToBeDeleted.setState(EmailState.TRASHED);
                     return ServerResponse.ACTION_COMPLETED;
                 }
 

@@ -7,12 +7,10 @@ import com.progiii.mailclientserver.utils.Operation;
 import com.progiii.mailclientserver.utils.SerializableEmail;
 import com.progiii.mailclientserver.utils.ServerResponse;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -31,12 +29,6 @@ public class NewMsgController {
 
     @FXML
     private TextArea textAreaMsg;
-
-    @FXML
-    private Button sendNewMsgButton;
-
-    @FXML
-    private Button draftsNewMsgButton;
 
     private Client client;
     private ClientController clientController;
@@ -65,7 +57,7 @@ public class NewMsgController {
     //Methods that send ACTIONS to Server//
     @FXML
     public void onSendButtonClicked(Event event) {
-        doNewMailOperation(event, new Action(client, client.newEmail.getReceiver().strip(), Operation.SEND_EMAIL));
+        doNewMailOperation(event, new Action(client, client.newEmail.getReceiver(), Operation.SEND_EMAIL));
     }
 
     @FXML
