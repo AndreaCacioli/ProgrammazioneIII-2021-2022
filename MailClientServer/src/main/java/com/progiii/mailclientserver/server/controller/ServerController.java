@@ -99,7 +99,7 @@ public class ServerController {
             return;
         }
         server.updateLog(" START SERVER... " + '\n');
-        server.readFromJSonClientsFile();
+        server.readFromJSONClientsFile();
         executorService = Executors.newFixedThreadPool(SIZE_OF_THREAD_POOL);
         scheduledExecutorService = Executors.newScheduledThreadPool(1);
         scheduledExecutorService.scheduleAtFixedRate(new SaveAllTask(), 30, 30, TimeUnit.SECONDS);

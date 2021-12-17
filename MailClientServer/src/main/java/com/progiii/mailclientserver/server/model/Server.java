@@ -52,6 +52,14 @@ public class Server {
         log = new SimpleStringProperty("");
     }
 
+    /**
+     * This static method take a String
+     * of section(inbox, sent, drafts, trashed) and
+     * return the EmailState of the specific section
+     *
+     * @param s
+     * @return
+     */
     public static EmailState stringToEmailState(String s) {
         if (s.compareTo("inbox") == 0) {
             return EmailState.RECEIVED;
@@ -67,15 +75,19 @@ public class Server {
         } else return null;
     }
 
-
+    /**
+     * 
+     *
+     * @param incomingRequest
+     */
     public synchronized void add(Action incomingRequest) {
         actions.add(incomingRequest);
         updateLog(incomingRequest.toString() + '\n');
     }
 
     /**
-     * Function which we used to add a Client
-     * in our clientsList
+     * method used to add Client to
+     * the ArrayList of Clients
      *
      * @param c
      */
@@ -92,10 +104,10 @@ public class Server {
     }
 
     /**
-     * we use readFromJSonClientsFile to
-     * read the client's JSon
+     * We use readFromJSONClientsFile to
+     * read the client's JSON
      */
-    public void readFromJSonClientsFile() {
+    public void readFromJSONClientsFile() {
         clients = new ArrayList<>();
         System.out.println("Loading Client's info...");
         JSONParser jsonParser = new JSONParser();
@@ -116,9 +128,10 @@ public class Server {
     }
 
     /**
-     * pareClientObject is a function used by
+     * parseClientObject is a function used by
      * readFromJSonClientsFile to take every information
-     * of one single client
+     * of one single specific Client and finally
+     * add to the Client the Email read from JSON file
      */
     private void parseClientObject(JSONObject clientJson, Client clientObject) {
         JSONArray sectionList = (JSONArray) clientJson.get(clientObject.getAddress());
@@ -148,6 +161,10 @@ public class Server {
         }
     }
 
+    /**
+     * This method save all Client's information
+     * into the JSON file
+     */
     public synchronized void saveClientsToJSON() {
         System.out.println("Server Saving");
         JSONArray array = new JSONArray();
@@ -205,7 +222,12 @@ public class Server {
         }
     }
 
-
+    /**
+     * updateLog is a method which we use
+     * to update the Server Log View
+     *
+     * @param s
+     */
     public void updateLog(String s) {
         Platform.runLater(() -> {
             log.setValue(log.getValue() + s);
