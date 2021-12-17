@@ -13,7 +13,6 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.AnchorPane;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -43,7 +42,6 @@ public class ServerController {
 
     @FXML
     private Button stopServerButton;
-
 
     @FXML
     public void initialize() {
@@ -396,7 +394,9 @@ public class ServerController {
 
     /**
      * We use this runnable class
-     * to save client's info
+     * to save client's info by using
+     * his method run() that call our
+     * function saveClientsToJSON
      */
     class SaveAllTask implements Runnable {
         public SaveAllTask() {

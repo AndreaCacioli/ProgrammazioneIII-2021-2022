@@ -16,6 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -74,12 +75,27 @@ public class NewMsgController {
                     clientController.getNewSocket();
                     clientController.setSocketSuccess();
                     clientController.sendActionToServer(action);
+
+                    if (action.getOperation() == Operation.SEND_EMAIL) {
+                        String[] receiversTmp = action.getReceiver().split(",");
+
+                        for (int i = 0; i < receiversTmp.length; i++) {
+                            if (!Email.validateEmailAddress(receiversTmp[i])) {
+                                Platform.runLater(() -> {
+                                    Alert a = new Alert(Alert.AlertType.ERROR, "Incorrect Form Email");
+                                    a.show();
+                                });
+                                return;
+                            }
+                        }
+                    }
+
                     clientController.sendEmailToServer(new SerializableEmail(client.newEmail));
                     ServerResponse response = clientController.waitForResponse();
                     if (response == ServerResponse.ACTION_COMPLETED) {
                         everythingWentFine.set(true);
                     } else {
-                        Platform.runLater(() -> {
+                        Platform.runLater(() -> { //TODO avvisare che client/s non trovato/i
                             String s = action.getOperation() == Operation.NEW_DRAFT ? "drafting " : "sending ";
                             Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while " + s + "an email");
                             a.show();
