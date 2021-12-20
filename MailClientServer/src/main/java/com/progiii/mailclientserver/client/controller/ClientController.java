@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -266,7 +267,7 @@ public class ClientController {
                 if (i != receivers.length - 1)
                     parameter += ",";
             }
-            client.newEmail.setReceiver(parameter.toString());
+            client.newEmail.setReceiver(parameter);
             client.newEmail.setSubject("Re: " + client.selectedEmail.getSubject());
             newMessageStage.show();
         }
@@ -329,7 +330,7 @@ public class ClientController {
 
     //This should be in critical section
     public ServerResponse waitForResponse() throws IOException, ClassNotFoundException {
-        ServerResponse response = ServerResponse.UNKNOWN_ERROR;
+        ServerResponse response;
         response = (ServerResponse) objectInputStream.readObject();
         System.out.println("Response: " + response);
         return response;
@@ -412,8 +413,7 @@ public class ClientController {
                 if (response == ServerResponse.ACTION_COMPLETED) {
                     ArrayList<Email> emailsFromServer = new ArrayList<>();
                     try {
-                        SerializableEmail serializableEmail = null;
-
+                        SerializableEmail serializableEmail;
                         //Get all emails from socket
                         while ((serializableEmail = (SerializableEmail) objectInputStream.readObject()) != null) {
                             Email serverEmail = new Email(serializableEmail);
@@ -431,17 +431,18 @@ public class ClientController {
                     }
 
                     //Cycle through all emails from server to add those that are new or modified
+                    AtomicInteger newMails = new AtomicInteger();
                     for (Email serverEmail : emailsFromServer) {
                         switch (serverEmail.getState()) {
                             case RECEIVED -> {
-                                if (!client.hasSameIDInCollection(client.inboxProperty(), serverEmail))
+                                if (!client.hasSameIDInCollection(client.inboxProperty(), serverEmail)) {
+                                    if (!serverEmail.isRead()) {
+                                        newMails.getAndIncrement();
+                                    }
                                     Platform.runLater(() -> {
                                         client.inboxProperty().add(serverEmail);
-                                        if (!serverEmail.isRead()) {
-                                            Alert a = new Alert(Alert.AlertType.CONFIRMATION, "New Email!");
-                                            a.show();
-                                        }
                                     });
+                                }
                             }
                             case SENT -> {
                                 if (!client.hasSameIDInCollection(client.sentProperty(), serverEmail))
@@ -480,7 +481,12 @@ public class ClientController {
                         client.draftsProperty().removeIf(draftsEmail -> !containsID(emailsFromServer, draftsEmail, EmailState.DRAFTED));
                         client.trashProperty().removeIf(trashEmail -> !containsID(emailsFromServer, trashEmail, EmailState.TRASHED));
                     });
-
+                    if (newMails.get() > 0) {
+                        Platform.runLater(() ->{
+                            Alert a = new Alert(Alert.AlertType.INFORMATION, "You have got " + newMails + " new Emails!");
+                            a.show();
+                        });
+                    }
                 } else //Not Action completed
                 {
                     System.out.println("Loading action caused a problem");
