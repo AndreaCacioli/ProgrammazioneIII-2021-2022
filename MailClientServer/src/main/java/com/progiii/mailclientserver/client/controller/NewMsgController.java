@@ -46,7 +46,9 @@ public class NewMsgController {
         this.clientController = clientController;
     }
 
-    //GUI
+    /**
+     * bindings the GUI input to the client.newEmail fields
+     */
     public void bindEverything() {
         textFieldTo.textProperty().bindBidirectional(client.newEmail.receiverProperty());
         textFieldSubject.textProperty().bindBidirectional(client.newEmail.subjectProperty());
@@ -66,6 +68,25 @@ public class NewMsgController {
         doNewMailOperation(event, new Action(client, null, Operation.NEW_DRAFT));
     }
 
+    /**
+     * first of all by using clientController.getNewSocket we create a Socket to
+     * get the connection with Server, if success we call setSocketSuccess which set
+     * on Client view the status connected and finally use sendActionToServer to send
+     * the Action to the Server.
+     *
+     * if the Action is SEND_EMAIL we check if the receiver string
+     * respect the Default Format
+     *
+     * After all, we send the Email(using SerializableEmail) to the Server, and we wait his response
+     * if every is ok, everythingWentFine is set to true state
+     *
+     * everythingWentFine allow to unbind all (because the stage will close), create a new Email and
+     * loadAllFromServer download Email
+     *
+     *
+     * @param event  that cause the call of method
+     * @param action which will be sent to Server
+     */
     private void doNewMailOperation(Event event, Action action) {
         AtomicBoolean everythingWentFine = new AtomicBoolean(false);
 
@@ -79,10 +100,12 @@ public class NewMsgController {
                     if (action.getOperation() == Operation.SEND_EMAIL) {
                         String[] receiversTmp = action.getReceiver().split(",");
 
+                        /*ask*/
+                        /*è giusto? perchè in tanto loro possono crearsi con errori*/
                         for (int i = 0; i < receiversTmp.length; i++) {
-                            if (!Email.validateEmailAddress(receiversTmp[i])) {
+                            if (!Email.validateEmailAddress(receiversTmp[i].trim())) {
                                 Platform.runLater(() -> {
-                                    Alert a = new Alert(Alert.AlertType.ERROR, "Incorrect Form Email");
+                                    Alert a = new Alert(Alert.AlertType.ERROR, "Incorrect Format Email");
                                     a.show();
                                 });
                                 return;
@@ -119,6 +142,7 @@ public class NewMsgController {
         }
 
         if (everythingWentFine.get()) {
+            /*ask*/
             client.newEmail = new Email(client.getLargestID() + 1);
             textAreaMsg.textProperty().unbindBidirectional(client.newEmail.bodyProperty());
             textFieldTo.textProperty().unbindBidirectional(client.newEmail.receiverProperty());

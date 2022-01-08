@@ -102,6 +102,16 @@ public class Email implements Comparable<Email> {
         this.body.set(body);
     }
 
+    /**
+     * Builder without dataTime
+     *
+     * @param sender   Client sender
+     * @param receiver Client receiver
+     * @param subject  the Email subject
+     * @param body     the Email body
+     * @param state    the section where is the Email
+     * @param ID       his ID
+     */
     public Email(String sender, String receiver, String subject, String body, EmailState state, long ID) {
         this.sender = new SimpleStringProperty(sender);
         this.receiver = new SimpleStringProperty(receiver);
@@ -112,6 +122,16 @@ public class Email implements Comparable<Email> {
         this.ID = ID;
     }
 
+    /**
+     * Builder with dataTime
+     *
+     * @param sender   Client sender
+     * @param receiver Client receiver
+     * @param subject  the Email subject
+     * @param body     the Email body
+     * @param state    the section where is the Email
+     * @param ID       his ID
+     */
     public Email(String sender, String receiver, String subject, String body, EmailState state, LocalDateTime dateTime, long ID) {
         this.sender = new SimpleStringProperty(sender);
         this.receiver = new SimpleStringProperty(receiver);
@@ -122,6 +142,11 @@ public class Email implements Comparable<Email> {
         this.ID = ID;
     }
 
+    /**
+     * Builder of an Email by using a SerializableEmail
+     *
+     * @param email which is Serializable
+     */
     public Email(SerializableEmail email) {
         this.sender = new SimpleStringProperty(email.getSender());
         this.receiver = new SimpleStringProperty(email.getReceiver());
@@ -133,6 +158,11 @@ public class Email implements Comparable<Email> {
         read = email.isRead();
     }
 
+    /**
+     * Builder of an Empty Email
+     *
+     * @param ID we just pass by param his ID
+     */
     public Email(long ID) {
         this.sender = new SimpleStringProperty("");
         this.receiver = new SimpleStringProperty("");
@@ -143,8 +173,15 @@ public class Email implements Comparable<Email> {
         this.ID = ID;
     }
 
+    /**
+     * VALID_EMAIL_ADDRESS_REGEX is the Pattern that a Client address must respect
+     */
     private static final Pattern VALID_EMAIL_ADDRESS_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
+    /**
+     * @param emailStr address to be checked if respect VALID_EMAIL_ADDRESS_REGEX
+     * @return true if address respect VALID_EMAIL_ADDRESS_REGEX
+     */
     public static boolean validateEmailAddress(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX.matcher(emailStr);
         return matcher.find();
@@ -159,6 +196,13 @@ public class Email implements Comparable<Email> {
                 ft.format(this.dateTime) + "Stato = " + state + "\nID = " + getID();
     }
 
+    /**
+     * getRandomEmail is a method that we used at the start of the project
+     * to insert a random Email in a section passed by param
+     *
+     * @param state section where put a random Email
+     * @return Email
+     */
     public static Email getRandomEmail(EmailState state) {
         Random r = new Random();
         String[] possibleUsers = {
@@ -204,6 +248,12 @@ public class Email implements Comparable<Email> {
 
     }
 
+    /**
+     * getRandomAddress is a method that we used at the start of the project
+     * to create a random Client address
+     *
+     * @return Client's Address
+     */
     public static String getRandomAddress() {
         String SALTCHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         StringBuilder salt = new StringBuilder();
@@ -217,6 +267,9 @@ public class Email implements Comparable<Email> {
 
     }
 
+    /**
+     * @return a clone of the Email used to call this method
+     */
     public Email clone() {
         return new Email(this.getSender(), this.getReceiver(), this.getSubject(), this.getBody(), this.getState(), this.getDateTime(), this.getID());
     }

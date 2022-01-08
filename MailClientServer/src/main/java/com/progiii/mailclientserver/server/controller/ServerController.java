@@ -55,7 +55,12 @@ public class ServerController {
 
 
     /**
-     * We use this method to start Server
+     * This method is called by click button event
+     * to allow to the user to start the Server by:
+     * Setting the running state to true,
+     * Disable the start button because is already clicked
+     * set to Visible the stop button and finally call the method
+     * startServer
      */
     @FXML
     private void onStartServerClicked() {
@@ -66,7 +71,12 @@ public class ServerController {
     }
 
     /**
-     * We use this method to stop Server
+     * This method is called by click button event
+     * to allow to the user to stop the Server by:
+     * Setting the running state to false,
+     * Disable the stop button because is already clicked
+     * set to Visible the start button and finally call the method
+     * stopServer
      */
     @FXML
     private void onStopServerClicked() {
@@ -86,10 +96,11 @@ public class ServerController {
 
     /**
      * startServer is a method
-     * that create socket, create a pool of thread
-     * used to catch and execute the client request connection, create
-     * a scheduled pool of Thread to save client's info every 30sec.
-     * A single Thread handle the request of client.
+     * that create serverSocket,
+     * load all Clients' info from the JSON,
+     * create a pool of Thread used to catch and execute the Client request connection,
+     * create a scheduled pool of Thread to save Clients' info every 30sec, started with a delay of 30sec.
+     * Finally, to allow to the user to use the view we create a Single Thread that handle the Connection phase
      */
     private void startServer() {
         try {
@@ -120,6 +131,11 @@ public class ServerController {
         }).start();
     }
 
+    /**
+     * stopServer is the method that shutdown
+     * every pool created from the startServer and
+     * save all Clients' info in the JSON file
+     */
     public void stopServer() {
         server.setRunning(false);
         executorService.shutdown();
@@ -133,6 +149,12 @@ public class ServerController {
         server.updateLog(" SHUTTING DOWN " + '\n');
     }
 
+    /**
+     * findClientByAddress is a support method
+     * simply search the Client obj in the ArrayList
+     * @param address string of Client's email
+     * @return Client obj
+     */
     private Client findClientByAddress(String address) {
         Client sender = null;
         ArrayList<Client> clients = server.getClients();
@@ -144,6 +166,12 @@ public class ServerController {
         return sender;
     }
 
+    /**
+     * ServerTask is the Task that will be executed,
+     * this task contains an action sent from Client by using
+     * ObjectOutputStream, Server according to the request sent
+     * will do an operation and send a response to the Client
+     */
     class ServerTask implements Runnable {
         Socket socketS;
         ObjectOutputStream objectOutputStream;
@@ -170,6 +198,7 @@ public class ServerController {
                 }
                 Action actionRequest = (Action) objectInputStream.readObject();
                 ServerResponse response;
+                /*ask*/
                 if (actionRequest.getOperation() == Operation.PING) {
                     sendResponse(ServerResponse.ACTION_COMPLETED);
                     server.add(actionRequest);
@@ -196,6 +225,7 @@ public class ServerController {
                     server.saveClientsToJSON();
                 } else if (actionRequest.getOperation() == Operation.GET_ALL_EMAILS) {
                     //The only void method because it sends the response before sending all the emails
+                    /*ask*/
                     sendAllEmails(actionRequest);
                     server.add(actionRequest);
                 }
@@ -219,10 +249,10 @@ public class ServerController {
 
         /**
          * Method used to send
-         * a response to Client using
-         * socket outputStream
+         * a response to Client by using
+         * the socket objectOutputStream
          *
-         * @param response will be sent to Client
+         * @param response that will be sent to Client
          */
         private void sendResponse(ServerResponse response) {
             try {
@@ -233,10 +263,23 @@ public class ServerController {
             }
         }
 
+        /**
+         * addEmailToReceiversInbox is used to send an Email,
+         * first of all read the SerializableEmail which is the Email to be sent to the receiver/s,
+         * we search in our Clients list if exists by using findClientByAddress,
+         * then we add to the local Client(receiver) inbox property the inboxEmail and
+         * add to the local Client(sender) sent property the sentEmail
+         * finally we send the response if all done correctly ACTION_COMPLETED
+         *
+         * @param actionRequest the Action sent from Client
+         * @param inStream used to read the SerializableEmail sent from Client
+         * @return ServerResponse
+         */
         ServerResponse addEmailToReceiversInbox(Action actionRequest, ObjectInputStream inStream) {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
                 Email sentEmail = new Email(serializableEmail);
+                /*ask*/
                 sentEmail.setReceiver(sentEmail.getReceiver().replaceAll(" ", ""));
                 sentEmail.setState(EmailState.SENT);
 
@@ -276,6 +319,18 @@ public class ServerController {
             }
         }
 
+        /**
+         * addEmailToSendersDrafts is used to draft an Email,
+         * first of all read the SerializableEmail which is the Email to be draft,
+         * we search in our Clients list if exists by using findClientByAddress,
+         * then we search if the Email is already drafted,
+         * if already exists we just delete the old draft and add to local the new one(same ID),
+         * else add to local draft the Email
+         *
+         * @param actionRequest the Action sent from Client
+         * @param inStream used to read the SerializableEmail sent from Client
+         * @return ServerResponse
+         */
         ServerResponse addEmailToSendersDrafts(Action actionRequest, ObjectInputStream inStream) {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
@@ -305,6 +360,20 @@ public class ServerController {
             }
         }
 
+        /**
+         * deleteEmail is used to delete an Email,
+         * first of all read the SerializableEmail which is the Email to be deleted,
+         * we search in our Clients list if exists by using findClientByAddress,
+         * we have to know where the Email is, we use a Client method whereIs
+         * that return the SimpleListProperty that contain the Email
+         * if is in the Trash simply we remove it
+         * otherwise we remove from the List, send it to the Trash list and set
+         * the state of Email to TRASHED
+         *
+         * @param actionRequest the Action sent from Client
+         * @param inStream used to read the SerializableEmail sent from Client
+         * @return ServerResponse
+         */
         ServerResponse deleteEmail(Action actionRequest, ObjectInputStream inStream) {
             try {
                 SerializableEmail serializableEmail = (SerializableEmail) inStream.readObject();
@@ -335,6 +404,16 @@ public class ServerController {
             }
         }
 
+        /**
+         * sendAllEmails is the method that allow to a Client
+         * to download each email contained in the different sections
+         * if the Client is new, we save it on JSON file but because he is new,
+         * he doesn't have Emails, so we send CLIENT_NOT_FOUND as response.
+         * Otherwise, we send to the Client every single Email (found locally)
+         * by using objectOutputStream
+         *
+         * @param actionRequest the Action sent from Client
+         */
         void sendAllEmails(Action actionRequest) {
             try {
                 Client requestClient = findClientByAddress(actionRequest.getSender());
@@ -345,6 +424,7 @@ public class ServerController {
                     server.addClient(new Client(actionRequest.getSender(), false));
                     System.out.println("New Client!");
                     server.saveClientsToJSON();
+                    /*ask*/
                     sendResponse(ServerResponse.CLIENT_NOT_FOUND);
                     return;
                 }
@@ -371,6 +451,19 @@ public class ServerController {
         }
     }
 
+    /**
+     * setEmailAsRead is the method that handle the read state of an Email,
+     * first of all we read the SerializableEmail from objectInputStream,
+     * we search if Client exists,
+     * if is true, we search only in inboxSection because an unread Email
+     * can only be there, if there isn't we send EMAIL_NOT_FOUND as response
+     * otherwise we set the Email state to true and saving to the JSON file the info,
+     * and finally send ACTION_COMPLETED as response.
+     *
+     * @param actionRequest the Action sent from Client
+     * @param objectInputStream used to read the SerializableEmail sent from Client
+     * @return ServerResponse
+     */
     private ServerResponse setEmailAsRead(Action actionRequest, ObjectInputStream objectInputStream) {
         try {
             SerializableEmail serializableEmail = (SerializableEmail) objectInputStream.readObject();
@@ -394,7 +487,7 @@ public class ServerController {
 
     /**
      * We use this runnable class
-     * to save client's info by using
+     * to save Clients' info by using
      * his method run() that call our
      * function saveClientsToJSON
      */

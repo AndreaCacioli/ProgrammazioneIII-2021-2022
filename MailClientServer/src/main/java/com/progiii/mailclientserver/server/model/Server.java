@@ -53,12 +53,23 @@ public class Server {
     }
 
     /**
+     * addClient is used to add Client to
+     * the ArrayList of Clients
+     *
+     * @param c client that will be added in ArrayList
+     */
+    public void addClient(Client c) {
+        if (c != null)
+            clients.add(c);
+    }
+
+    /**
      * This static method take a String
      * of section(inbox, sent, drafts, trashed) and
      * return the EmailState of the specific section
      *
-     * @param s
-     * @return
+     * @param s string to be compare
+     * @return the EmailState
      */
     public static EmailState stringToEmailState(String s) {
         if (s.compareTo("inbox") == 0) {
@@ -76,9 +87,11 @@ public class Server {
     }
 
     /**
-     * 
+     * This method allow to add an Action
+     * to the Action's ArrayList and call
+     * updateLog to show the Action on view
      *
-     * @param incomingRequest
+     * @param incomingRequest is the Action to be show
      */
     public synchronized void add(Action incomingRequest) {
         actions.add(incomingRequest);
@@ -86,14 +99,14 @@ public class Server {
     }
 
     /**
-     * method used to add Client to
-     * the ArrayList of Clients
+     * updateLog is a method which we used to update the Server Log View
      *
-     * @param c
+     * @param s is a string that will be shown on Server's view
      */
-    public void addClient(Client c) {
-        if (c != null)
-            clients.add(c);
+    public void updateLog(String s) {
+        Platform.runLater(() -> {
+            log.setValue(log.getValue() + s);
+        });
     }
 
     /**
@@ -105,7 +118,8 @@ public class Server {
 
     /**
      * We use readFromJSONClientsFile to
-     * read the client's JSON
+     * read the client's JSON which is a file
+     * that contains all Clients info
      */
     public void readFromJSONClientsFile() {
         clients = new ArrayList<>();
@@ -119,7 +133,7 @@ public class Server {
                 String clientString = jsonClient.toString();
                 String[] junk = clientString.split("\"");
                 Client client = new Client(junk[1], false);
-                clients.add(client);
+                clients.add(client); /* when server start load all clients in the ArrayList */
                 parseClientObject((JSONObject) clientsList.get(i), client);
             }
         } catch (Exception e) {
@@ -131,7 +145,10 @@ public class Server {
      * parseClientObject is a function used by
      * readFromJSonClientsFile to take every information
      * of one single specific Client and finally
-     * add to the Client the Email read from JSON file
+     * add his Email redden from JSON file
+     *
+     * @param clientJson is the Client passed like JSONObj used to take his info
+     * @param clientObject is the Client passed like obj used to select to the JSONArray the correct Client
      */
     private void parseClientObject(JSONObject clientJson, Client clientObject) {
         JSONArray sectionList = (JSONArray) clientJson.get(clientObject.getAddress());
@@ -221,17 +238,4 @@ public class Server {
             }
         }
     }
-
-    /**
-     * updateLog is a method which we use
-     * to update the Server Log View
-     *
-     * @param s
-     */
-    public void updateLog(String s) {
-        Platform.runLater(() -> {
-            log.setValue(log.getValue() + s);
-        });
-    }
-
 }

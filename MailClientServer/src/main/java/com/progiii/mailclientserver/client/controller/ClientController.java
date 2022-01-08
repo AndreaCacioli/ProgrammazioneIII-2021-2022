@@ -72,6 +72,11 @@ public class ClientController {
     ObjectOutputStream objectOutputStream;
     ObjectInputStream objectInputStream;
 
+    /**
+     * method used to assign a Stage to this.newMessageStage
+     *
+     * @param newMessageStage newMSG window
+     */
     public void setStage(Stage newMessageStage) {
         this.newMessageStage = newMessageStage;
     }
@@ -89,24 +94,30 @@ public class ClientController {
     }
 
     /**
-     * Binding of Gravatar Image
+     * Binding Gravatar Image,
+     * first of all check if there is internet connection
+     * if true -> bind the image
+     * otherwise set as Client's image a Local one
+     * and finally bind the address
      */
     public void setGravatarBindings() {
         try {
             Socket socket = new Socket("www.google.com", 80);
             if (socket.isConnected()) {
                 this.getAvatarView().imageProperty().bind(client.imageProperty());
-                this.getAccountLabel().textProperty().bind(client.addressProperty());
                 System.out.println("OK Internet Connection");
             } else System.out.println("NO Internet Connection");
             socket.close();
         } catch (Exception ex) {
             System.out.println("---NO Internet Connection---");
+        } finally {
+            this.getAccountLabel().textProperty().bind(client.addressProperty());
         }
     }
 
     /**
      * Binding of left-bottom Status label of GUI
+     * which allow seeing if Client is connected to Server
      */
     public void setStatusBiding() {
         this.getStatusLabel().textProperty().bind(client.statusProperty());
@@ -127,8 +138,14 @@ public class ClientController {
 
     ///////////////////////////////
     //Methods that change the GUI//
+
+    /**
+     * called when Controller is in initialize phase
+     * setting to the view a clock using to see the current time
+     */
     @FXML
     public void initialize() {
+        /*ask*/
         Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
             LocalTime currentTime = LocalTime.now();
             timeLabel.setText(currentTime.getHour() + ":" + currentTime.getMinute() + "\t");
@@ -139,6 +156,13 @@ public class ClientController {
         clock.play();
     }
 
+    /**
+     * method call when we click on Inbox Section
+     * if Inbox not empty we select the first Email
+     * otherwise the selectedEmail is a new one(
+     * used to bind an empty Email to the view).
+     * We bind the ListView to the Client inboxProperty, and finally we bind the selected Email to the View
+     */
     @FXML
     private void showInbox() {
         client.selectedEmail = new Email(client.getLargestID() + 1);
@@ -147,6 +171,13 @@ public class ClientController {
         bindMailToView(client.selectedEmail);
     }
 
+    /**
+     * method call when we click on Sent Section
+     * if Sent not empty we select the first Email
+     * otherwise the selectedEmail is a new one(
+     * used to bind an empty Email to the view).
+     * We bind the ListView to the Client sentProperty, and finally we bind the selected Email to the View
+     */
     @FXML
     private void showSent() {
         client.selectedEmail = new Email(client.getLargestID() + 1);
@@ -155,6 +186,13 @@ public class ClientController {
         bindMailToView(client.selectedEmail);
     }
 
+    /**
+     * method call when we click on Drafts Section
+     * if Drafts not empty we select the first Email
+     * otherwise the selectedEmail is a new one(
+     * used to bind an empty Email to the view).
+     * We bind the ListView to the Client draftsProperty, and finally we bind the selected Email to the View
+     */
     @FXML
     private void showDrafts() {
         client.selectedEmail = new Email(client.getLargestID() + 1);
@@ -163,6 +201,13 @@ public class ClientController {
         bindMailToView(client.selectedEmail);
     }
 
+    /**
+     * method call when we click on Trash Section
+     * if Trash not empty we select the first Email
+     * otherwise the selectedEmail is a new one(
+     * used to bind an empty Email to the view).
+     * We bind the ListView to the Client trashProperty, and finally we bind the selected Email to the View
+     */
     @FXML
     private void showTrash() {
         client.selectedEmail = new Email(client.getLargestID() + 1);
@@ -171,6 +216,20 @@ public class ClientController {
         bindMailToView(client.selectedEmail);
     }
 
+    /**
+     * method called when we click on ListView,
+     * if ListView is empty return
+     * otherwise we select the first Email and bind this one to the view.
+     * <p>
+     * After, we check if Email is already been read, if the answer is false
+     * we create a Thread that contact the Server, send Action, send the Email and
+     * wait for Response to set true state of read variable.
+     * <p>
+     * Finally, if we click two times on an Email and this one is in Drafts Section
+     * we one a newMessageStage to allow Client to complete the draft
+     *
+     * @param event that call onListViewClick
+     */
     @FXML
     private void onListViewClick(MouseEvent event) {
 
@@ -218,6 +277,12 @@ public class ClientController {
 
     }
 
+    /**
+     * method called when Client click on new Email button,
+     * newEmail is set to a new Email with getLargestID+1,
+     * newEmail sender is set to the Client's address,
+     * and finally we show the new message stage
+     */
     @FXML
     private void onNewMailButtonClicked() {
         try {
@@ -229,6 +294,11 @@ public class ClientController {
         }
     }
 
+    /**
+     * fist of all we check that selectedEmail is unlike null
+     * if true -> set newEmail to a new one and setting all others fields
+     * finally we show the new message stage to allow Client to write the receiver
+     */
     @FXML
     protected void onForwardButtonClicked() {
         if (client.selectedEmail != null) {
@@ -240,6 +310,11 @@ public class ClientController {
         }
     }
 
+    /**
+     * fist of all we check that selectedEmail is unlike null
+     * if true -> set newEmail to a new one and setting all others fields
+     * finally we show the new message stage to allow Client to write the new message body
+     */
     @FXML
     protected void onReplyButtonClicked() {
         if (client.selectedEmail != null) {
@@ -251,6 +326,10 @@ public class ClientController {
         }
     }
 
+    /**
+     * this method is like onReplyButtonClicked, but this one allow
+     * Client to answer to an Email with multiple receiver
+     */
     @FXML
     protected void onReplyAllButtonClicked() {
         if (client.selectedEmail != null) {
@@ -273,6 +352,11 @@ public class ClientController {
         }
     }
 
+    /**
+     * method used to bind the Email passed by param to view
+     *
+     * @param email will bind to the Client's view
+     */
     private void bindMailToView(Email email) {
         fromTextField.textProperty().bind(email.senderProperty());
         toTextField.textProperty().bind(email.receiverProperty());
@@ -280,6 +364,7 @@ public class ClientController {
         selectedEmailView.textProperty().bind(email.bodyProperty());
     }
 
+    /*ARRIVATO*/
     private void showNextEmail(int indexOfDeletedEmail) {
         if (emailListView.getItems().size() == 1) {
             resetSelectedEmail();
@@ -482,7 +567,7 @@ public class ClientController {
                         client.trashProperty().removeIf(trashEmail -> !containsID(emailsFromServer, trashEmail, EmailState.TRASHED));
                     });
                     if (newMails.get() > 0) {
-                        Platform.runLater(() ->{
+                        Platform.runLater(() -> {
                             Alert a = new Alert(Alert.AlertType.INFORMATION, "You have got " + newMails + " new Emails!");
                             a.show();
                         });

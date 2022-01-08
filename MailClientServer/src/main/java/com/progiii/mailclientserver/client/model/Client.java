@@ -52,6 +52,12 @@ public class Client {
         return address.get();
     }
 
+    /**
+     * Builder for Client
+     *
+     * @param address   his Email Address
+     * @param withImage boolean var that allow to choose if Client use Gravatar Image
+     */
     public Client(String address, boolean withImage) {
         this.address = new SimpleStringProperty(address);
         this.inbox = new SimpleListProperty<>(FXCollections.observableArrayList());
@@ -63,6 +69,11 @@ public class Client {
 
     }
 
+    /**
+     * @param emailList section where we check if Email exists
+     * @param email     Email to be search in the list
+     * @return true if List contain the Email
+     */
     public boolean contains(SimpleListProperty<Email> emailList, Email email) {
         for (Email e : emailList) {
             if (e.equals(email))
@@ -71,6 +82,11 @@ public class Client {
         return false;
     }
 
+    /**
+     * @param emailList section where we check Email
+     * @param id        Email id used to search in the List the Email
+     * @return Email with the id passed by param
+     */
     public Email findEmailById(SimpleListProperty<Email> emailList, long id) {
         for (Email e : emailList) {
             if (e.getID() == id)
@@ -79,6 +95,10 @@ public class Client {
         return null;
     }
 
+    /**
+     * @param email which we want to know where is
+     * @return the SimpleListProperty where is the Email passed by param
+     */
     public SimpleListProperty<Email> whereIs(Email email) {
         SimpleListProperty<Email> ret = null;
         if (inboxProperty().contains(email)) ret = inboxProperty();
@@ -88,6 +108,12 @@ public class Client {
         return ret;
     }
 
+    /**
+     * method that check every Email of Client
+     * and return his max ID
+     *
+     * @return max ID
+     */
     public long getLargestID() {
         long max = 0;
         SimpleListProperty<Email> allEmails = new SimpleListProperty<>(FXCollections.observableArrayList());
@@ -101,6 +127,14 @@ public class Client {
         return max;
     }
 
+    /**
+     * method used to search in the section if
+     * there is another email with same ID of Email passed
+     * by param
+     * @param list  section where we check Email
+     * @param email Email to be search in the section
+     * @return true if already exists
+     */
     public boolean hasSameIDInCollection(SimpleListProperty<Email> list, Email email) {
         for (Email emailIterated : list) {
             if (emailIterated.getID() == email.getID()) return true;
