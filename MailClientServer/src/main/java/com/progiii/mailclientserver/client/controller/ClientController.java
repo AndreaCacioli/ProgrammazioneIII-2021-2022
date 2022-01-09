@@ -34,6 +34,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ClientController {
 
+    /*ask*/
+    /*structure*/
     @FXML
     private ListView<Email> emailListView;
 
@@ -364,7 +366,23 @@ public class ClientController {
         selectedEmailView.textProperty().bind(email.bodyProperty());
     }
 
-    /*ARRIVATO*/
+    /**
+     * showNextEmail is a method that allow Client's view to update
+     * a selectedEmail automatically when Client delete an Email.
+     * <p>
+     * first of fall check if is the last Email, if is it true,
+     * simply we unbind the selectedEmail to the view, we create another one
+     * empty and bind  the last one on Client view, all is done by using resetSelectedEmail support method .
+     * <p>
+     * Otherwise, check if the indexOfDeletedEmail is 0 (the first on view),
+     * if is it true we call resetSelectedEmail, then assign to selectedEmail the next one
+     * and bind it to Client view.
+     * <p>
+     * The last case contains all others index, and do the same operation of indexOfDeletedEmail == 0
+     * but the next one will be selected by using index: indexOfDeletedEmail-1.
+     *
+     * @param indexOfDeletedEmail of the Email to be deleted
+     */
     private void showNextEmail(int indexOfDeletedEmail) {
         if (emailListView.getItems().size() == 1) {
             resetSelectedEmail();
@@ -386,6 +404,10 @@ public class ClientController {
         }
     }
 
+    /**
+     * resetSelectedEmail unbind the selectedEmail to the view, create another one
+     * empty Email and bind it on Client view.
+     */
     private void resetSelectedEmail() {
         client.selectedEmail = new Email(client.getLargestID() + 1);
 
@@ -403,6 +425,13 @@ public class ClientController {
 
     //Common method to send an action
     //This should be in critical section
+
+    /**
+     * sendActionToServer is a support method that allow
+     * to send an Action to Server
+     *
+     * @param action that will be sent to Server
+     */
     public void sendActionToServer(Action action) {
         if (objectOutputStream == null) return;
         try {
@@ -414,6 +443,14 @@ public class ClientController {
     }
 
     //This should be in critical section
+
+    /**
+     * this method is used to read the Server Response
+     *
+     * @return Server's Response
+     * @throws IOException            exception caught from the caller
+     * @throws ClassNotFoundException exception caught from the caller
+     */
     public ServerResponse waitForResponse() throws IOException, ClassNotFoundException {
         ServerResponse response;
         response = (ServerResponse) objectInputStream.readObject();
@@ -422,6 +459,12 @@ public class ClientController {
     }
 
     //This should be in critical section
+
+    /**
+     * this method is used to send an Email to Server
+     *
+     * @param serializableEmail is the Email that will be sent to Server
+     */
     public void sendEmailToServer(SerializableEmail serializableEmail) {
         if (objectOutputStream == null) return;
         try {
@@ -432,6 +475,15 @@ public class ClientController {
         }
     }
 
+    /**
+     * method called when Client click on delete button,
+     * first of all we check if selectedEmail is not Empty/null (true: Alert)
+     * if it is false, we create Thread that handle a connection with Server,
+     * send Action (DELETE_EMAIL), send the Email to be deleted and wait a response.
+     * if the response is ACTION_COMPLETED we find the index of Email, we download
+     * new Email from Server, then reset the Client View to be ready to view the new one,
+     * and finally call showNextEmail that show the next Email.
+     */
     @FXML
     private void deleteSelectedEmail() {
         if (client.selectedEmail == null || client.selectedEmail.getSender().equals("")) {
@@ -476,6 +528,23 @@ public class ClientController {
         }).start();
     }
 
+    /**
+     * loadAllFromServer is the heart of this project,
+     * this method download new Emails from Server and
+     * add these to Clients.
+     * <p>
+     * how it works: a Thread handle all operation done,
+     * used to prevent the view blockage.
+     * then Thread's task is:
+     * connect to Server, sent to it GET_ALL_EMAILS Action,
+     * wait the Server Response, if answer is ACTION_COMPLETED,
+     * we create an ArrayList that contains all Email sent from Server,
+     * then we cycle on it, and we look each emailState and
+     * for every Email we check if already exists (not modify or not new Email)
+     * if is it false we add locally the new / modified Email.
+     * Last operation is a cycle that check if there are Emails that aren't on Server,
+     * but they are still in Client.
+     */
     @FXML
     protected void loadAllFromServer() {
         new Thread(() -> {
@@ -524,6 +593,8 @@ public class ClientController {
                                     if (!serverEmail.isRead()) {
                                         newMails.getAndIncrement();
                                     }
+                                    /*ask*/
+                                    /*why platform.runLater*/
                                     Platform.runLater(() -> {
                                         client.inboxProperty().add(serverEmail);
                                     });
@@ -536,7 +607,8 @@ public class ClientController {
                             case DRAFTED -> {
                                 if (!client.hasSameIDInCollection(client.draftsProperty(), serverEmail)) {
                                     Platform.runLater(() -> client.draftsProperty().add(serverEmail));
-                                } else {
+                                } else { /*ask*/
+                                    /*how it works*/
                                     if (client.newEmail != null && serverEmail.getID() == client.newEmail.getID()) {
                                         break;
                                     }
@@ -580,6 +652,14 @@ public class ClientController {
         }).start();
     }
 
+    /**
+     * support method that check if all Client Emails are on Server
+     *
+     * @param emailsFromServer list of email sent from Server
+     * @param inboxEmail       Client Email to be checked if exists on Server List
+     * @param emailState       location of the Email
+     * @return
+     */
     private boolean containsID(ArrayList<Email> emailsFromServer, Email inboxEmail, EmailState emailState) {
         for (Email email : emailsFromServer) {
             if (email.getState() == emailState && inboxEmail.getID() == email.getID()) return true;
@@ -589,12 +669,24 @@ public class ClientController {
 
     ///////////////////////////////////////
     //Auto and manual server reconnection//
+
+    /**
+     * support method that create a new socket and
+     * assign objectOutputStream and objectInputStream
+     *
+     * @throws IOException exception caught from caller
+     */
     protected void getNewSocket() throws IOException {
         socket = new Socket(InetAddress.getLocalHost(), 6969);
         objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         objectInputStream = new ObjectInputStream(socket.getInputStream());
     }
 
+    /**
+     * if the creation of new socket Success,
+     * this method set left-bottom label to Connected
+     * and hide the restartConnButton
+     */
     protected void setSocketSuccess() {
         System.out.println("Connection To Server Successes");
         Platform.runLater(() -> {
@@ -603,6 +695,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * if the creation of new socket Failed,
+     * this method set left-bottom label to Connection To Server Failure
+     * and set visible the restartConnButton
+     */
     protected void setSocketFailure() {
         System.out.println("Connection To Server Failure");
         Platform.runLater(() -> {
@@ -611,6 +708,10 @@ public class ClientController {
         });
     }
 
+    /**
+     * method used to close the Connection with Server
+     * by closing Socket, objectOutputStream and objectInputStream
+     */
     protected void closeConnectionToServer() {
         if (socket != null && objectInputStream != null && objectOutputStream != null) {
             try {
@@ -625,17 +726,29 @@ public class ClientController {
 
     //////////////////////////////////////////
     //Auto download of every Email on server//
+
+    /**
+     * method used to create a scheduled Thread pool,
+     * which every 5 sec call loadAllFromSever
+     */
     public void startPeriodicEmailDownloader() {
         if (scheduledExEmailDownloader != null) return;
         scheduledExEmailDownloader = Executors.newScheduledThreadPool(1);
         scheduledExEmailDownloader.scheduleAtFixedRate(new PeriodicEmailDownloader(), 0, 5, TimeUnit.SECONDS);
     }
 
+    /**
+     * method used when Client close application
+     * to shut down the scheduledExEmailDownloader
+     */
     public void shutdownPeriodicEmailDownloader() {
         if (scheduledExEmailDownloader != null)
             scheduledExEmailDownloader.shutdown();
     }
 
+    /**
+     * Task that will be executed by scheduledExEmailDownloader
+     */
     class PeriodicEmailDownloader implements Runnable {
         public PeriodicEmailDownloader() {
         }
