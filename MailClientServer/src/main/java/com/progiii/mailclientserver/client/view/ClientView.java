@@ -14,6 +14,20 @@ import java.util.Objects;
 
 
 public class ClientView extends Application {
+
+
+    /**
+     * The main method called when the application starts
+     * Initializes the model only once,
+     * and then passes it to the two controllers
+     * that are created by javaFX when the xml file is parsed.
+     * This method wants the EMAIL ADDRESS of the client as a STRING ARGUMENT OF THE PROGRAM
+     * Based on the email address passed, we use Gravatar's API
+     * to get a computer generated image to use as a profile picture.
+     *
+     * Please note that this application on itself is of very little interest if not paired to the server.
+     * (See ServerView.java)
+     * */
     @Override
     public void start(Stage stage) throws IOException {
 

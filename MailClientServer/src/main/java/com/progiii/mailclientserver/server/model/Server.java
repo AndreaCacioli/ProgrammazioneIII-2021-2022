@@ -23,10 +23,11 @@ public class Server {
     ArrayList<Action> actions;
     ArrayList<Client> clients;
     SimpleStringProperty log;
-    private final String JSONClientsFile = "./src/main/resources/com/progiii/mailclientserver/server/data/clients.json";
+    static final String JSONClientsFile = "./src/main/resources/com/progiii/mailclientserver/server/data/clients.json";
     private boolean running = true;
     private final String[] names = {"inbox", "sent", "drafts", "trashed"};
 
+    @SuppressWarnings("All")
     public ArrayList<Action> getActions() {
         return actions;
     }
@@ -44,7 +45,7 @@ public class Server {
     }
 
     /**
-     * Server's builder
+     * Server's constructor
      */
     public Server() {
         clients = new ArrayList<>();
@@ -64,9 +65,9 @@ public class Server {
     }
 
     /**
-     * This static method take a String
+     * This static method takes in a String
      * of section(inbox, sent, drafts, trashed) and
-     * return the EmailState of the specific section
+     * returns the EmailState of the specific section
      *
      * @param s string to be compare
      * @return the EmailState
@@ -87,7 +88,7 @@ public class Server {
     }
 
     /**
-     * This method allow to add an Action
+     * This method allows us to add an Action
      * to the Action's ArrayList and call
      * updateLog to show the Action on view
      *
@@ -104,9 +105,7 @@ public class Server {
      * @param s is a string that will be shown on Server's view
      */
     public void updateLog(String s) {
-        Platform.runLater(() -> {
-            log.setValue(log.getValue() + s);
-        });
+        Platform.runLater(() -> log.setValue(log.getValue() + s));
     }
 
     /**
@@ -119,7 +118,7 @@ public class Server {
     /**
      * We use readFromJSONClientsFile to
      * read the client's JSON which is a file
-     * that contains all Clients info
+     * that contains all Client's info
      */
     public void readFromJSONClientsFile() {
         clients = new ArrayList<>();
@@ -128,13 +127,13 @@ public class Server {
         try (FileReader reader = new FileReader(JSONClientsFile)) {
             Object obj = jsonParser.parse(reader);
             JSONArray clientsList = (JSONArray) obj;
-            for (int i = 0; i < clientsList.size(); i++) {
-                JSONObject jsonClient = (JSONObject) clientsList.get(i);
+            for (Object o : clientsList) {
+                JSONObject jsonClient = (JSONObject) o;
                 String clientString = jsonClient.toString();
                 String[] junk = clientString.split("\"");
                 Client client = new Client(junk[1], false);
                 clients.add(client); /* when server start load all clients in the ArrayList */
-                parseClientObject((JSONObject) clientsList.get(i), client);
+                parseClientObject((JSONObject) o, client);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,18 +144,19 @@ public class Server {
      * parseClientObject is a function used by
      * readFromJSonClientsFile to take every information
      * of one single specific Client and finally
-     * add his Email redden from JSON file
+     * add his Email read from JSON file
      *
      * @param clientJson is the Client passed like JSONObj used to take his info
      * @param clientObject is the Client passed like obj used to select to the JSONArray the correct Client
      */
+    @SuppressWarnings("All")
     private void parseClientObject(JSONObject clientJson, Client clientObject) {
         JSONArray sectionList = (JSONArray) clientJson.get(clientObject.getAddress());
         for (int i = 0; i < sectionList.size(); i++) {
             JSONObject sectionObj = (JSONObject) sectionList.get(i);
             JSONArray emailList = (JSONArray) sectionObj.get(names[i]);
-            for (int j = 0; j < emailList.size(); j++) {
-                JSONObject emailObj = (JSONObject) emailList.get(j);
+            for (Object o : emailList) {
+                JSONObject emailObj = (JSONObject) o;
                 String sender = (String) emailObj.get("sender");
                 String receiver = (String) emailObj.get("receiver");
                 String subject = (String) emailObj.get("subject");
@@ -179,9 +179,10 @@ public class Server {
     }
 
     /**
-     * This method save all Client's information
+     * This method saves all Client's information
      * into the JSON file
      */
+    @SuppressWarnings("All")
     public synchronized void saveClientsToJSON() {
         System.out.println("Server Saving");
         JSONArray array = new JSONArray();
@@ -190,9 +191,9 @@ public class Server {
 
             JSONObject clients = new JSONObject();
             JSONArray arrayOfsection = new JSONArray();
-            JSONObject section = null;
-            JSONArray arrayOfEmail = null;
-            JSONObject emailDetails = null;
+            JSONObject section;
+            JSONArray arrayOfEmail;
+            JSONObject emailDetails;
 
             SimpleListProperty<Email>[] lists = new SimpleListProperty[]{client.inboxProperty(), client.sentProperty(), client.draftsProperty(), client.trashProperty()};
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");

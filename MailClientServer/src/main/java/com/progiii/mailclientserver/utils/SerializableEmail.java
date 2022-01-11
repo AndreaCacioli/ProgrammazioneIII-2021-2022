@@ -6,16 +6,22 @@ import com.progiii.mailclientserver.client.model.EmailState;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/*
+* A class to make an email serializable and therefore ready to be sent via Socket
+* This representation of an email should only be used for content sharing, not as the real model,
+* because it has no property and therefore this doesn't allow you to bind it to anything.
+*
+* */
 public class SerializableEmail implements Serializable, Comparable<SerializableEmail> {
     private final String sender;
     private final String receiver;
     private final String subject;
     private final String body;
 
-    private EmailState state;
-    private LocalDateTime dateTime;
-    private long ID;
-    private boolean read = true;
+    private final EmailState state;
+    private final LocalDateTime dateTime;
+    private final long ID;
+    private final boolean read;
 
     public boolean isRead() {
         return read;
@@ -49,6 +55,7 @@ public class SerializableEmail implements Serializable, Comparable<SerializableE
         return dateTime;
     }
 
+    @SuppressWarnings("All")
     public LocalDateTime getDate() {
         return dateTime;
     }

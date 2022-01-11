@@ -9,6 +9,12 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class ServerView extends Application {
+    /*
+    * The main method that gets called.
+    * The application is the server that sends the emails back and forth between the clients.
+    * It has a GUI that shows what is happening in real time
+    * and allows the user to stop/resume the service with a button.
+    * */
     @Override
     public void start(Stage stage) throws IOException {
 

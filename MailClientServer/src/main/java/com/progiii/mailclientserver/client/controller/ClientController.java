@@ -34,8 +34,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ClientController {
 
-    /*ask*/
-    /*structure*/
     @FXML
     private ListView<Email> emailListView;
 
@@ -83,12 +81,10 @@ public class ClientController {
         this.newMessageStage = newMessageStage;
     }
 
-    @SuppressWarnings("all")
     public Client getClient() {
         return client;
     }
 
-    @SuppressWarnings("all")
     public void setClient(Client client) {
         if (this.client != null)
             throw new IllegalStateException("Client can only be initialized once");
@@ -97,9 +93,9 @@ public class ClientController {
 
     /**
      * Binding Gravatar Image,
-     * first of all check if there is internet connection
-     * if true -> bind the image
-     * otherwise set as Client's image a Local one
+     * first check if there is internet connection
+     * if true -> download the image and set it as the avatar
+     * otherwise use a Local image as a placeholder
      * and finally bind the address
      */
     public void setGravatarBindings() {
@@ -107,8 +103,7 @@ public class ClientController {
             Socket socket = new Socket("www.google.com", 80);
             if (socket.isConnected()) {
                 this.getAvatarView().imageProperty().bind(client.imageProperty());
-                System.out.println("OK Internet Connection");
-            } else System.out.println("NO Internet Connection");
+            }
             socket.close();
         } catch (Exception ex) {
             System.out.println("---NO Internet Connection---");
@@ -118,8 +113,8 @@ public class ClientController {
     }
 
     /**
-     * Binding of left-bottom Status label of GUI
-     * which allow seeing if Client is connected to Server
+     * Binding of bottom-left Status label of GUI
+     * which allows us to see if Client is connected to Server
      */
     public void setStatusBiding() {
         this.getStatusLabel().textProperty().bind(client.statusProperty());
@@ -142,12 +137,11 @@ public class ClientController {
     //Methods that change the GUI//
 
     /**
-     * called when Controller is in initialize phase
-     * setting to the view a clock using to see the current time
+     * Method called when Controller is in its initialize phase
+     * setting to the view a clock using to display time
      */
     @FXML
     public void initialize() {
-        /*ask*/
         Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
             LocalTime currentTime = LocalTime.now();
             timeLabel.setText(currentTime.getHour() + ":" + currentTime.getMinute() + "\t");
@@ -159,11 +153,11 @@ public class ClientController {
     }
 
     /**
-     * method call when we click on Inbox Section
-     * if Inbox not empty we select the first Email
-     * otherwise the selectedEmail is a new one(
-     * used to bind an empty Email to the view).
-     * We bind the ListView to the Client inboxProperty, and finally we bind the selected Email to the View
+     * Method called when we click on INBOX SECTION (Left Sidebar)
+     * if the Inbox is not empty we select the first Email
+     * otherwise the selectedEmail is a new one(used to bind an empty Email to the view).
+     * We bind the ListView to the Client inboxProperty (Model),
+     * and finally we bind the selected Email to the View
      */
     @FXML
     private void showInbox() {
@@ -174,11 +168,11 @@ public class ClientController {
     }
 
     /**
-     * method call when we click on Sent Section
+     * Method called when we click on SENT SECTION
      * if Sent not empty we select the first Email
-     * otherwise the selectedEmail is a new one(
-     * used to bind an empty Email to the view).
-     * We bind the ListView to the Client sentProperty, and finally we bind the selected Email to the View
+     * otherwise the selectedEmail is a new one (used to bind an empty Email to the view).
+     * We bind the ListView to the Client sentProperty (Model),
+     * and finally we bind the selected Email to the View
      */
     @FXML
     private void showSent() {
@@ -189,11 +183,12 @@ public class ClientController {
     }
 
     /**
-     * method call when we click on Drafts Section
+     * Method called when we click on DRAFTS SECTION
      * if Drafts not empty we select the first Email
-     * otherwise the selectedEmail is a new one(
-     * used to bind an empty Email to the view).
-     * We bind the ListView to the Client draftsProperty, and finally we bind the selected Email to the View
+     * otherwise the selectedEmail is a new one
+     * (used to bind an empty Email to the view).
+     * We bind the ListView to the Client draftsProperty (Model),
+     * and finally we bind the selected Email to the View
      */
     @FXML
     private void showDrafts() {
@@ -204,11 +199,12 @@ public class ClientController {
     }
 
     /**
-     * method call when we click on Trash Section
+     * Method called when we click on TRASH SECTION
      * if Trash not empty we select the first Email
-     * otherwise the selectedEmail is a new one(
-     * used to bind an empty Email to the view).
-     * We bind the ListView to the Client trashProperty, and finally we bind the selected Email to the View
+     * otherwise the selectedEmail is a new one
+     * (used to bind an empty Email to the view).
+     * We bind the ListView to the Client trashProperty (Model),
+     * and finally we bind the selected Email to the View
      */
     @FXML
     private void showTrash() {
@@ -219,11 +215,11 @@ public class ClientController {
     }
 
     /**
-     * method called when we click on ListView,
+     * Method called when we click on ListView (Selecting an email),
      * if ListView is empty return
      * otherwise we select the first Email and bind this one to the view.
      * <p>
-     * After, we check if Email is already been read, if the answer is false
+     * After, we check if Email has already been read, if the answer is false
      * we create a Thread that contact the Server, send Action, send the Email and
      * wait for Response to set true state of read variable.
      * <p>
@@ -280,7 +276,7 @@ public class ClientController {
     }
 
     /**
-     * method called when Client click on new Email button,
+     * Method called when Client clicks on new Email button,
      * newEmail is set to a new Email with getLargestID+1,
      * newEmail sender is set to the Client's address,
      * and finally we show the new message stage
@@ -297,9 +293,9 @@ public class ClientController {
     }
 
     /**
-     * fist of all we check that selectedEmail is unlike null
-     * if true -> set newEmail to a new one and setting all others fields
-     * finally we show the new message stage to allow Client to write the receiver
+     * First we check if selectedEmail is not null.
+     * If true -> set newEmail to a new one and setting every other field
+     * Finally we show the new message stage to allow Client to write to the new receiver(s)
      */
     @FXML
     protected void onForwardButtonClicked() {
@@ -313,9 +309,9 @@ public class ClientController {
     }
 
     /**
-     * fist of all we check that selectedEmail is unlike null
-     * if true -> set newEmail to a new one and setting all others fields
-     * finally we show the new message stage to allow Client to write the new message body
+     * First we check that selectedEmail is not null
+     * If true -> set newEmail to a new one and setting every other fields
+     * Finally we show the new message stage to allow Client to write the new message body
      */
     @FXML
     protected void onReplyButtonClicked() {
@@ -329,8 +325,8 @@ public class ClientController {
     }
 
     /**
-     * this method is like onReplyButtonClicked, but this one allow
-     * Client to answer to an Email with multiple receiver
+     * This method is like onReplyButtonClicked, but this one allows
+     * the client to answer to an Email with multiple receivers
      */
     @FXML
     protected void onReplyAllButtonClicked() {
@@ -338,26 +334,26 @@ public class ClientController {
             client.newEmail = new Email(client.getLargestID() + 1);
             client.newEmail.setSender(client.addressProperty().get());
             String[] receivers = client.selectedEmail.getReceiver().split(",");
-            String parameter = "";
+            StringBuilder parameter = new StringBuilder();
             for (int i = 0; i < receivers.length; i++) {
                 String receiver = receivers[i].strip();
                 if (client.getAddress().equals(receiver))
-                    parameter += client.selectedEmail.getSender();
+                    parameter.append(client.selectedEmail.getSender());
                 else
-                    parameter += receiver;
+                    parameter.append(receiver);
                 if (i != receivers.length - 1)
-                    parameter += ",";
+                    parameter.append(",");
             }
-            client.newEmail.setReceiver(parameter);
+            client.newEmail.setReceiver(parameter.toString());
             client.newEmail.setSubject("Re: " + client.selectedEmail.getSubject());
             newMessageStage.show();
         }
     }
 
     /**
-     * method used to bind the Email passed by param to view
+     * Method used to bind the Email passed by param to view
      *
-     * @param email will bind to the Client's view
+     * @param email to be bound to the Client's view
      */
     private void bindMailToView(Email email) {
         fromTextField.textProperty().bind(email.senderProperty());
@@ -367,16 +363,17 @@ public class ClientController {
     }
 
     /**
-     * showNextEmail is a method that allow Client's view to update
-     * a selectedEmail automatically when Client delete an Email.
+     * ShowNextEmail is a method that allows Client's view to update
+     * the selectedEmail automatically when Client deletes an Email.
      * <p>
-     * first of fall check if is the last Email, if is it true,
-     * simply we unbind the selectedEmail to the view, we create another one
-     * empty and bind  the last one on Client view, all is done by using resetSelectedEmail support method .
+     * First we check if it is the last Email,
+     * if is it true, simply we unbind the selectedEmail to the view, we create a new one
+     * empty, and we bind the last one on Client's view,
+     * all of this is done by using resetSelectedEmail support method.
      * <p>
      * Otherwise, check if the indexOfDeletedEmail is 0 (the first on view),
      * if is it true we call resetSelectedEmail, then assign to selectedEmail the next one
-     * and bind it to Client view.
+     * and bind it to Client's view.
      * <p>
      * The last case contains all others index, and do the same operation of indexOfDeletedEmail == 0
      * but the next one will be selected by using index: indexOfDeletedEmail-1.
@@ -405,8 +402,8 @@ public class ClientController {
     }
 
     /**
-     * resetSelectedEmail unbind the selectedEmail to the view, create another one
-     * empty Email and bind it on Client view.
+     * The support method resetSelectedEmail unbinds the selectedEmail to the view to create a new one
+     * empty and binds it on Client view.
      */
     private void resetSelectedEmail() {
         client.selectedEmail = new Email(client.getLargestID() + 1);
@@ -427,8 +424,8 @@ public class ClientController {
     //This should be in critical section
 
     /**
-     * sendActionToServer is a support method that allow
-     * to send an Action to Server
+     * sendActionToServer is a support method that allows us
+     * to send an Action to the Server
      *
      * @param action that will be sent to Server
      */
@@ -454,14 +451,13 @@ public class ClientController {
     public ServerResponse waitForResponse() throws IOException, ClassNotFoundException {
         ServerResponse response;
         response = (ServerResponse) objectInputStream.readObject();
-        System.out.println("Response: " + response);
         return response;
     }
 
     //This should be in critical section
 
     /**
-     * this method is used to send an Email to Server
+     * This method is used to send an Email object to Server
      *
      * @param serializableEmail is the Email that will be sent to Server
      */
@@ -476,13 +472,13 @@ public class ClientController {
     }
 
     /**
-     * method called when Client click on delete button,
-     * first of all we check if selectedEmail is not Empty/null (true: Alert)
-     * if it is false, we create Thread that handle a connection with Server,
-     * send Action (DELETE_EMAIL), send the Email to be deleted and wait a response.
-     * if the response is ACTION_COMPLETED we find the index of Email, we download
-     * new Email from Server, then reset the Client View to be ready to view the new one,
-     * and finally call showNextEmail that show the next Email.
+     * Method called when a Client clicks on the delete button,
+     * First we check if selectedEmail is not Empty/null (true: Alert)
+     * if it is false, we create Thread that handles a connection with Server,
+     * sends the Action (DELETE_EMAIL), sends the Email to be deleted and waits a response.
+     * If the response is ACTION_COMPLETED we find the index of Email, we download
+     * new Email from Server, then reset the Client View to be ready to display the new one,
+     * and finally we call showNextEmail that shows the next Email.
      */
     @FXML
     private void deleteSelectedEmail() {
@@ -511,7 +507,6 @@ public class ClientController {
                     } finally {
                         closeConnectionToServer();
                     }
-                    // TODO check where is when click 2 times trash button
                     if (response == ServerResponse.ACTION_COMPLETED) {
                         int indexOfEmail = client.whereIs(client.selectedEmail).indexOf(client.selectedEmail);
                         loadAllFromServer();
@@ -530,20 +525,20 @@ public class ClientController {
 
     /**
      * loadAllFromServer is the heart of this project,
-     * this method download new Emails from Server and
-     * add these to Clients.
+     * this method downloads new Emails from Server and
+     * adds these to Clients.
      * <p>
-     * how it works: a Thread handle all operation done,
+     * How it works: a Thread handles all the operations done,
      * used to prevent the view blockage.
      * then Thread's task is:
-     * connect to Server, sent to it GET_ALL_EMAILS Action,
-     * wait the Server Response, if answer is ACTION_COMPLETED,
-     * we create an ArrayList that contains all Email sent from Server,
-     * then we cycle on it, and we look each emailState and
-     * for every Email we check if already exists (not modify or not new Email)
+     * connect to Server, send it GET_ALL_EMAILS Action,
+     * wait the Server Response, if the answer is ACTION_COMPLETED,
+     * we create an ArrayList that contains all Emails sent from Server,
+     * then we cycle through it, and we look each emailState and
+     * for every Email we check if it already existed (not modify or not new Email)
      * if is it false we add locally the new / modified Email.
-     * Last operation is a cycle that check if there are Emails that aren't on Server,
-     * but they are still in Client.
+     * Last operation is a cycle that checks if there are Emails that aren't on Server,
+     * but they are still in Client, in that scenario the extra emails are deleted.
      */
     @FXML
     protected void loadAllFromServer() {
@@ -593,11 +588,7 @@ public class ClientController {
                                     if (!serverEmail.isRead()) {
                                         newMails.getAndIncrement();
                                     }
-                                    /*ask*/
-                                    /*why platform.runLater*/
-                                    Platform.runLater(() -> {
-                                        client.inboxProperty().add(serverEmail);
-                                    });
+                                    Platform.runLater(() -> client.inboxProperty().add(serverEmail));
                                 }
                             }
                             case SENT -> {
@@ -607,20 +598,19 @@ public class ClientController {
                             case DRAFTED -> {
                                 if (!client.hasSameIDInCollection(client.draftsProperty(), serverEmail)) {
                                     Platform.runLater(() -> client.draftsProperty().add(serverEmail));
-                                } else { /*ask*/
-                                    /*how it works*/
+                                } else {
                                     if (client.newEmail != null && serverEmail.getID() == client.newEmail.getID()) {
                                         break;
                                     }
                                     //Getting the email with the same id and checking if it has any changes
                                     Email clientEmail = client.findEmailById(client.draftsProperty(), serverEmail.getID());
-                                    if (serverEmail.senderProperty().getValue().compareTo(clientEmail.getSender()) != 0)
+                                    if (!serverEmail.senderProperty().getValue().equals(clientEmail.getSender()))
                                         clientEmail.senderProperty().setValue(serverEmail.getSender());
-                                    if (serverEmail.receiverProperty().getValue().compareTo(clientEmail.getReceiver()) != 0)
+                                    if (!serverEmail.receiverProperty().getValue().equals(clientEmail.getReceiver()))
                                         clientEmail.receiverProperty().setValue(serverEmail.getReceiver());
-                                    if (serverEmail.subjectProperty().getValue().compareTo(clientEmail.getSubject()) != 0)
+                                    if (!serverEmail.subjectProperty().getValue().equals(clientEmail.getSubject()))
                                         clientEmail.subjectProperty().setValue(serverEmail.getSubject());
-                                    if (serverEmail.bodyProperty().getValue().compareTo(clientEmail.getBody()) != 0)
+                                    if (!serverEmail.bodyProperty().getValue().equals(clientEmail.getBody()))
                                         clientEmail.bodyProperty().setValue(serverEmail.getBody());
                                 }
                             }
@@ -653,13 +643,14 @@ public class ClientController {
     }
 
     /**
-     * support method that check if all Client Emails are on Server
+     * Support method that checks if all Client's Emails are on Server
      *
      * @param emailsFromServer list of email sent from Server
      * @param inboxEmail       Client Email to be checked if exists on Server List
      * @param emailState       location of the Email
      * @return
      */
+    @SuppressWarnings("All")
     private boolean containsID(ArrayList<Email> emailsFromServer, Email inboxEmail, EmailState emailState) {
         for (Email email : emailsFromServer) {
             if (email.getState() == emailState && inboxEmail.getID() == email.getID()) return true;
@@ -671,8 +662,8 @@ public class ClientController {
     //Auto and manual server reconnection//
 
     /**
-     * support method that create a new socket and
-     * assign objectOutputStream and objectInputStream
+     * Support method that creates a new socket and
+     * initializes objectOutputStream and objectInputStream
      *
      * @throws IOException exception caught from caller
      */
@@ -683,12 +674,11 @@ public class ClientController {
     }
 
     /**
-     * if the creation of new socket Success,
-     * this method set left-bottom label to Connected
-     * and hide the restartConnButton
+     * If the creation of new socket is successful,
+     * this method sets left-bottom label to Connected
+     * and hides the restartConnButton
      */
     protected void setSocketSuccess() {
-        System.out.println("Connection To Server Successes");
         Platform.runLater(() -> {
             client.statusProperty().setValue("Connected");
             restartConnButton.setVisible(false);
@@ -696,12 +686,11 @@ public class ClientController {
     }
 
     /**
-     * if the creation of new socket Failed,
-     * this method set left-bottom label to Connection To Server Failure
-     * and set visible the restartConnButton
+     * If the creation of new socket failed,
+     * this method sets left-bottom label to Connection To Server Failure
+     * and sets visible the restartConnButton
      */
     protected void setSocketFailure() {
-        System.out.println("Connection To Server Failure");
         Platform.runLater(() -> {
             client.statusProperty().setValue("Trying to connect to Server...");
             restartConnButton.setVisible(true);
@@ -709,7 +698,7 @@ public class ClientController {
     }
 
     /**
-     * method used to close the Connection with Server
+     * Method used to close the Connection with Server
      * by closing Socket, objectOutputStream and objectInputStream
      */
     protected void closeConnectionToServer() {
@@ -728,8 +717,8 @@ public class ClientController {
     //Auto download of every Email on server//
 
     /**
-     * method used to create a scheduled Thread pool,
-     * which every 5 sec call loadAllFromSever
+     * Method used to create a scheduled Thread pool,
+     * which every 5 sec calls loadAllFromSever
      */
     public void startPeriodicEmailDownloader() {
         if (scheduledExEmailDownloader != null) return;
@@ -738,7 +727,7 @@ public class ClientController {
     }
 
     /**
-     * method used when Client close application
+     * Method used when Client closes application
      * to shut down the scheduledExEmailDownloader
      */
     public void shutdownPeriodicEmailDownloader() {

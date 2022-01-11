@@ -16,7 +16,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -47,7 +46,7 @@ public class NewMsgController {
     }
 
     /**
-     * bindings the GUI input to the client.newEmail fields
+     * Binds the GUI input to the client.newEmail fields
      */
     public void bindEverything() {
         textFieldTo.textProperty().bindBidirectional(client.newEmail.receiverProperty());
@@ -69,19 +68,19 @@ public class NewMsgController {
     }
 
     /**
-     * first of all by using clientController.getNewSocket we create a Socket to
-     * get the connection with Server, if success we call setSocketSuccess which set
-     * on Client view the status connected and finally use sendActionToServer to send
+     * First by using clientController.getNewSocket we create a Socket to
+     * get the connection with Server, if we do it successfully we call setSocketSuccess which sets
+     * on Client view the status connected, and finally we use sendActionToServer to send
      * the Action to the Server.
      *
-     * if the Action is SEND_EMAIL we check if the receiver string
+     * If the Action is SEND_EMAIL we check if the receiver string
      * respect the Default Format
      *
-     * After all, we send the Email(using SerializableEmail) to the Server, and we wait his response
-     * if every is ok, everythingWentFine is set to true state
+     * After all, we send the Email(using SerializableEmail) to the Server, and we wait for his response
+     * if everything is ok, everythingWentFine is set to true state.
      *
-     * everythingWentFine allow to unbind all (because the stage will close), create a new Email and
-     * loadAllFromServer download Email
+     * everythingWentFine allows us to unbind all (because the stage will close), create a new Email and
+     * loadAllFromServer downloads the Emails
      *
      *
      * @param event  that cause the call of method
@@ -100,10 +99,8 @@ public class NewMsgController {
                     if (action.getOperation() == Operation.SEND_EMAIL) {
                         String[] receiversTmp = action.getReceiver().split(",");
 
-                        /*ask*/
-                        /*è giusto? perchè in tanto loro possono crearsi con errori*/
-                        for (int i = 0; i < receiversTmp.length; i++) {
-                            if (!Email.validateEmailAddress(receiversTmp[i].trim())) {
+                        for (String s : receiversTmp) {
+                            if (!Email.validateEmailAddress(s.trim())) {
                                 Platform.runLater(() -> {
                                     Alert a = new Alert(Alert.AlertType.ERROR, "Incorrect Format Email");
                                     a.show();
@@ -117,8 +114,13 @@ public class NewMsgController {
                     ServerResponse response = clientController.waitForResponse();
                     if (response == ServerResponse.ACTION_COMPLETED) {
                         everythingWentFine.set(true);
-                    } else {
-                        Platform.runLater(() -> { //TODO avvisare che client/s non trovato/i
+                    }else if(response == ServerResponse.CLIENT_NOT_FOUND)
+                    {
+                        Alert a = new Alert(Alert.AlertType.ERROR, "One or more of the clients you tried to send an email to were not found!");
+                        a.show();
+                    }
+                    else {
+                        Platform.runLater(() -> {
                             String s = action.getOperation() == Operation.NEW_DRAFT ? "drafting " : "sending ";
                             Alert a = new Alert(Alert.AlertType.ERROR, "Something went wrong while " + s + "an email");
                             a.show();
@@ -142,7 +144,6 @@ public class NewMsgController {
         }
 
         if (everythingWentFine.get()) {
-            /*ask*/
             client.newEmail = new Email(client.getLargestID() + 1);
             textAreaMsg.textProperty().unbindBidirectional(client.newEmail.bodyProperty());
             textFieldTo.textProperty().unbindBidirectional(client.newEmail.receiverProperty());

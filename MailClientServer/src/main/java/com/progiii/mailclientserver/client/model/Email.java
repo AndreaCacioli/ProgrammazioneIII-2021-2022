@@ -11,9 +11,17 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/*
+ * This class is used to represent the Email object
+ * as something that can change during the course of its life.
+ * As such the fields of the object are properties,
+ * which means that can be used to bind views to.
+ *
+ * We Identify an email by its sender and ID values together
+ *
+ * */
 public class Email implements Comparable<Email> {
 
-    //We Identify an email by its sender and ID values together
 
     private final StringProperty sender;
     private final StringProperty receiver;
@@ -103,7 +111,7 @@ public class Email implements Comparable<Email> {
     }
 
     /**
-     * Builder without dataTime
+     * Constructor without dateTime
      *
      * @param sender   Client sender
      * @param receiver Client receiver
@@ -123,7 +131,7 @@ public class Email implements Comparable<Email> {
     }
 
     /**
-     * Builder with dataTime
+     * Constructor with dateTime
      *
      * @param sender   Client sender
      * @param receiver Client receiver
@@ -143,7 +151,7 @@ public class Email implements Comparable<Email> {
     }
 
     /**
-     * Builder of an Email by using a SerializableEmail
+     * Constructor of an Email by using a SerializableEmail
      *
      * @param email which is Serializable
      */
@@ -159,7 +167,7 @@ public class Email implements Comparable<Email> {
     }
 
     /**
-     * Builder of an Empty Email
+     * Constructor of an Empty Email
      *
      * @param ID we just pass by param his ID
      */
@@ -193,7 +201,7 @@ public class Email implements Comparable<Email> {
         return "From: " + getSender() + "\n" +
                 "To: " + getReceiver() + "\n" +
                 "Subject: " + getSubject() + '\n' +
-                ft.format(this.dateTime) + "Stato = " + state + "\nID = " + getID();
+                ft.format(this.dateTime);
     }
 
     /**
@@ -221,7 +229,7 @@ public class Email implements Comparable<Email> {
                 "Your Marketing Sucks: Why You Need to Think Local",
                 "Info: Your Product",
                 "What your Cat says about YOU",
-                "READ MY EMAIL!!! aehm... please...",
+                "READ MY EMAIL!!! ahem... please...",
                 "Quit your lazy ass life and start getting your acts together: join our gym",
                 "How long is too long for an email subject???",
                 "Why your favorite Marvel character is worse than the worst DC character",
@@ -270,6 +278,7 @@ public class Email implements Comparable<Email> {
     /**
      * @return a clone of the Email used to call this method
      */
+    @SuppressWarnings("All")
     public Email clone() {
         return new Email(this.getSender(), this.getReceiver(), this.getSubject(), this.getBody(), this.getState(), this.getDateTime(), this.getID());
     }
